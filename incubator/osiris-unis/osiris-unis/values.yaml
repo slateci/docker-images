@@ -1,7 +1,0 @@
-# Default values for osiris-unis.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
-
-Instance: global
-
-replicaCount: 1

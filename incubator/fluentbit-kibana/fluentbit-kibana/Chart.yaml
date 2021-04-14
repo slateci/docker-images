@@ -1,4 +1,0 @@
-apiVersion: v1
-name: fluentbit-kibana
-version: 0.1.2
-
