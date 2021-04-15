@@ -1,7 +1,5 @@
 FROM opensciencegrid/osg-wn:3.5-el7
 
-LABEL maintainer="Lincoln Bryant <lincolnb@uchicago.edu>"
-
 # another hack- we need to remove singularity and replace it with Igor's script
 # that wraps around the singularity binary from CVMFS and removes the --pid
 # option
@@ -10,8 +8,8 @@ RUN yum remove -y singularity
 # libXt needed for some application
 # tcsh needed for fsurf
 # ATLAS needs unzip, gcc at least.
-RUN yum -y install --enablerepo=osg-upcoming condor \ 
-                   openssh-clients \ 
+RUN yum -y install --enablerepo=osg-upcoming condor \
+                   openssh-clients \
                    openssh-server \
                    libXt \
                    tcsh \

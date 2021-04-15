@@ -1,0 +1,6 @@
+name: condor-worker
+description:
+maintainer: Lincoln Bryant <lincolnb@uchicago.edu>
+usage:
+url:
+version: 1.0.0
