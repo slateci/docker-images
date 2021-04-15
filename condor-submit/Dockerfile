@@ -1,5 +1,4 @@
 FROM opensciencegrid/software-base:fresh
-LABEL maintainer "Lincoln Bryant <lincolnb@uchicago.edu>"
 
 RUN yum update -y && yum install -y epel-release
 
@@ -12,14 +11,14 @@ RUN yum install -y --enablerepo=osg-upcoming --enablerepo=osg-empty \
   pwgen \
   supervisor \
   openssl \
-  htop \ 
-  gratia-probe-glideinwms \ 
+  htop \
+  gratia-probe-glideinwms \
   gratia-probe-common \
   gratia-probe-condor \
-  emacs \ 
+  emacs \
   vim-enhanced \
   nano \
-  iotop \ 
+  iotop \
   tmux \
   screen \
   zsh \
@@ -37,7 +36,7 @@ RUN yum install -y --enablerepo=osg-upcoming --enablerepo=osg-empty \
   bc \
   empty-ca-certs \
   glibc-static \
-  wget \ 
+  wget \
   curl
 
 RUN yum clean all && rm -rf /tmp/yum*

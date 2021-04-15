@@ -1,0 +1,6 @@
+name: fts3
+description: File Transfer Service from CERN
+maintainer: Lincoln Bryant <lincolnb@uchicago.edu>
+usage:
+url:
+version: 1.0.0
