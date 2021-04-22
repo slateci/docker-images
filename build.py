@@ -2,6 +2,7 @@
 
 import datetime
 import subprocess
+from functools import partial
 from os import chdir, path
 from sys import stdout
 from typing import Any, Dict, Optional, Set
@@ -25,6 +26,8 @@ IMAGE_URL = "ghcr.io/slateci"
 #   2. Add force build/push and lint/scan buttons.
 #   3. Push images on non-stable branches (e.g. beta), and clean up those branches after they are merged.
 
+# Force print to flush each time it's called.
+print = partial(print, flush=True)
 
 ### Helper Functions ###
 def gh_error(msg: str) -> None:
@@ -137,11 +140,10 @@ def build_folder(folder: str) -> bool:
             image_name_tag,
         ]
         + labels_flags,
+        stdout=stdout,
+        stderr=stdout,
         cwd=folder,
-        capture_output=True,
     )
-
-    print(build_output.stdout.decode())
 
     if build_output.returncode != 0:
         gh_error("Failed to build!")
@@ -163,10 +165,8 @@ def push_folder(folder: str) -> bool:
     image_name_tag = f"{IMAGE_URL}/{metadata['name']}:{metadata['version']}"
 
     push_output = subprocess.run(
-        ["docker", "push", image_name_tag], capture_output=True, cwd=folder
+        ["docker", "push", image_name_tag], stdout=stdout, stderr=stdout, cwd=folder
     )
-
-    print(push_output.stdout.decode())
 
     if push_output.returncode != 0:
         gh_error("Failed to push!")
