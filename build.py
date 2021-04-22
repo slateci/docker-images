@@ -31,6 +31,8 @@ IMAGE_URL = "ghcr.io/slateci"
 print = partial(print, flush=True)
 
 ### Helper Functions ###
+# See https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions#grouping-log-lines
+# for information about these ::keyword:: messages.
 def gh_error(msg: str) -> None:
     print("::error::" + msg)
 
@@ -197,7 +199,24 @@ def push_folder(folder: str) -> bool:
 
 ### Scan for Vulnerabilities ###
 def scan_for_vulnerability(folder: str) -> bool:
-    pass
+    print(">>>> Scan Image for Vulnerabilities <<<<")
+
+    metadata = get_metadata(folder)
+    if metadata is None:
+        return False
+
+    image_name_tag = f"{IMAGE_URL}/{metadata['name']}:{metadata['version']}"
+
+    scan_output = subprocess.run(
+        ["docker", "scan", image_name_tag], stdout=stdout, cwd=folder
+    )
+
+    if scan_output.returncode != 0:
+        gh_error("Image failed vulnerability scan!")
+        return False
+
+    print(f">> Image vulnerability scan came back clean! <<")
+    return True
 
 
 ### Main Functions ###
@@ -219,6 +238,9 @@ def folder_pipeline(folder: str) -> bool:
         return False
 
     # Scan for Vulnerabilities
+    if not scan_for_vulnerability(folder):
+        print("::endgroup::")
+        return False
 
     # Push
     if not push_folder(folder):
