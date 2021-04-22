@@ -232,9 +232,9 @@ def folder_pipeline(folder: str) -> bool:
     retval = False
     if (
         check_required_files(folder)
-        and lint_folder(folder)
+        # and lint_folder(folder)
         and build_folder(folder)
-        and scan_for_vulnerability(folder)
+        # and scan_for_vulnerability(folder)
         and push_folder(folder)
     ):
         retval = True
