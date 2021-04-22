@@ -1,7 +1,6 @@
 FROM centos:7
 
-RUN yum update -y && \
-    yum install -y epel-release && \
+RUN yum install -y epel-release && \
     yum install -y sssd authconfig openssh-server supervisor && \
     yum clean all
 
