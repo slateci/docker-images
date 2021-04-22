@@ -3,9 +3,9 @@
 import datetime
 import subprocess
 from functools import partial
-from os import chdir, path
+from os import path
 from sys import stdout
-from typing import Any, Dict, Optional, Set
+from typing import Any, Dict, List, Optional, Set, Tuple, cast
 
 import yaml
 
@@ -60,17 +60,17 @@ def get_changed_folders() -> Set[str]:
 
 def check_required_files(folder: str) -> bool:
     if not path.isfile(f"{folder}/Dockerfile"):
-        gh_error(f"Dockerfile not found!")
+        gh_error("Dockerfile not found!")
         return False
 
     if not path.isfile(f"{folder}/metadata.yml"):
-        gh_error(f"metadata.yml not found!")
+        gh_error("metadata.yml not found!")
         return False
 
     return True
 
 
-def get_metadata(folder: str) -> Optional[Dict[str, Any]]:
+def get_metadata(folder: str) -> Optional[Tuple[Dict[str, Any], List[str]]]:
     try:
         with open(f"{folder}/metadata.yml") as f:
             metadata = yaml.load(f.read(), Loader=Loader)
@@ -78,8 +78,14 @@ def get_metadata(folder: str) -> Optional[Dict[str, Any]]:
         gh_error(f"Failed to read metadata.yml: {e}")
         return None
 
+    if not isinstance(metadata, dict):
+        gh_error("Unexpected metadata.yml format!")
+        return None
+    else:
+        metadata = cast(Dict[str, Any], metadata)
+
     if "name" not in metadata or metadata["name"] is None or metadata["name"] == "":
-        gh_error(f"'name' field missing in metadata.yml!")
+        gh_error("'name' field missing in metadata.yml!")
         return None
 
     if (
@@ -87,10 +93,14 @@ def get_metadata(folder: str) -> Optional[Dict[str, Any]]:
         or metadata["version"] is None
         or metadata["version"] == ""
     ):
-        gh_error(f"'version' field missing in metadata.yml!")
+        gh_error("'version' field missing in metadata.yml!")
         return None
 
-    return metadata
+    # TODO: add check for stable branch here
+    return metadata, [
+        f"{IMAGE_URL}/{metadata['name']}:{metadata['version']}",
+        f"{IMAGE_URL}/{metadata['name']}:latest",
+    ]
 
 
 ### Lint ###
@@ -118,12 +128,8 @@ def lint_folder(folder: str) -> bool:
 
 
 ### Build ###
-def build_folder(folder: str) -> bool:
+def build_folder(folder: str, metadata: Dict[str, Any], tags: List[str]) -> bool:
     print(">>>> Build Image <<<<")
-
-    metadata = get_metadata(folder)
-    if metadata is None:
-        return False
 
     labels = {}
     for field in LABEL_SCHEMA_FIELDS:
@@ -149,7 +155,10 @@ def build_folder(folder: str) -> bool:
     for k, v in labels.items():
         labels_flags += ["--label", f"{k}={v}"]
 
-    image_name_tag = f"{IMAGE_URL}/{metadata['name']}:{metadata['version']}"
+    tag_flags = []
+    for t in tags:
+        tag_flags += ["--tag", t]
+
     build_output = subprocess.run(
         [
             "docker",
@@ -157,14 +166,11 @@ def build_folder(folder: str) -> bool:
             ".",
             "--file",
             "Dockerfile",
-            "--tag",
-            image_name_tag,
             "--cache-from",
-            image_name_tag,
+            f"{IMAGE_URL}/{metadata['name']}:latest",
         ]
         + labels_flags
-        # TODO: add check for stable branch here
-        + ["--tag", f"{IMAGE_URL}/{metadata['name']}:latest"] if True else [],
+        + tag_flags,
         stdout=stdout,
         cwd=folder,
     )
@@ -173,22 +179,16 @@ def build_folder(folder: str) -> bool:
         gh_error("Failed to build!")
         return False
 
-    print(f">> Successfully built! <<")
+    print(">> Successfully built! <<")
     return True
 
 
 ### Scan for Vulnerabilities ###
-def scan_for_vulnerability(folder: str) -> bool:
+def scan_for_vulnerability(folder: str, tags: List[str]) -> bool:
     print(">>>> Scan Image for Vulnerabilities <<<<")
 
-    metadata = get_metadata(folder)
-    if metadata is None:
-        return False
-
-    image_name_tag = f"{IMAGE_URL}/{metadata['name']}:{metadata['version']}"
-
     scan_output = subprocess.run(
-        ["docker", "scan", image_name_tag, "--accept-license"],
+        ["docker", "scan", tags[0], "--accept-license"],
         stdout=stdout,
         cwd=folder,
     )
@@ -197,45 +197,39 @@ def scan_for_vulnerability(folder: str) -> bool:
         gh_error("Image failed vulnerability scan!")
         return False
 
-    print(f">> Image vulnerability scan came back clean! <<")
+    print(">> Image vulnerability scan came back clean! <<")
     return True
 
 
 ### Push ###
 # Assumes docker login has already been done.
-def push_folder(folder: str) -> bool:
+def push_folder(folder: str, tags: List[str]) -> bool:
     print(">>>> Push Image <<<<")
 
-    metadata = get_metadata(folder)
-    if metadata is None:
-        return False
+    for t in tags:
+        push_output = subprocess.run(["docker", "push", t], stdout=stdout, cwd=folder)
 
-    image_name_tag = f"{IMAGE_URL}/{metadata['name']}:{metadata['version']}"
+        if push_output.returncode != 0:
+            gh_error(f"Failed to push {t}!")
+            return False
 
-    push_output = subprocess.run(
-        ["docker", "push", image_name_tag, "--all-tags"], stdout=stdout, cwd=folder
-    )
-
-    if push_output.returncode != 0:
-        gh_error("Failed to push!")
-        return False
-
-    print(f">> Successfully pushed! <<")
+    print(">> Successfully pushed! <<")
     return True
 
 
 ### Main Functions ###
-def folder_pipeline(folder: str) -> bool:
+def main_pipeline(folder: str) -> bool:
     print(f"::group::{folder}")
 
     # Use short circuiting to chain results (if only Python had monads).
     retval = False
     if (
         check_required_files(folder)
+        and (mt_tuple := get_metadata(folder))
         # and lint_folder(folder)
-        and build_folder(folder)
-        # and scan_for_vulnerability(folder)
-        and push_folder(folder)
+        and build_folder(folder, *mt_tuple)
+        # and scan_for_vulnerability(folder, mt_tuple[1])
+        and push_folder(folder, mt_tuple[1])
     ):
         retval = True
 
@@ -245,14 +239,14 @@ def folder_pipeline(folder: str) -> bool:
 
 def main() -> int:
     changed_folders = get_changed_folders()
-    changed_folders = ["basic-auth"]
+    changed_folders = {"basic-auth"}
 
     print(f"Detected changes in folders: {', '.join(changed_folders)}")
 
     failed = []
 
     for folder in changed_folders:
-        if not folder_pipeline(folder):
+        if not main_pipeline(folder):
             failed.append(folder)
 
     if len(failed) != 0:
