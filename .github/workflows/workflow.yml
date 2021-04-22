@@ -15,6 +15,13 @@ jobs:
       - name: Authenticate with container registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login https://ghcr.io -u $GITHUB_ACTOR --password-stdin
 
+      - name: Install hadolint
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/bin
+          curl -L https://github.com/hadolint/hadolint/releases/download/v2.3.0/hadolint-Linux-x86_64 --output $GITHUB_WORKSPACE/bin/hadolint
+          echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
+          chmod +x $GITHUB_WORKSPACE/bin/hadolint
+
       # - name: Install script dependencies
       #   run: pip3 install pyyaml
 
