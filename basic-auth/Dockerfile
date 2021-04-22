@@ -1,5 +1,7 @@
 FROM centos:7
 
+RUN yum clean expire-cache && yum install -y libldb
+
 RUN yum install -y epel-release && \
     yum install -y sssd authconfig openssh-server supervisor && \
     yum clean all
