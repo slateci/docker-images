@@ -26,6 +26,7 @@ IMAGE_URL = "ghcr.io/slateci"
 #   2. Add force build/push and lint/scan buttons.
 #   3. Push images on non-stable branches (e.g. beta), and clean up those branches after they are merged.
 #   4. Change detection should use commit _from last push_.
+#   5. Add GH action cron job to check for vulnerabilities.
 
 # Force print to flush each time it's called.
 print = partial(print, flush=True)
@@ -161,7 +162,9 @@ def build_folder(folder: str) -> bool:
             "--cache-from",
             image_name_tag,
         ]
-        + labels_flags,
+        + labels_flags
+        # TODO: add check for stable branch here
+        + ["--tag", f"{IMAGE_URL}/{metadata['name']}:latest"] if True else [],
         stdout=stdout,
         cwd=folder,
     )
@@ -210,7 +213,7 @@ def push_folder(folder: str) -> bool:
     image_name_tag = f"{IMAGE_URL}/{metadata['name']}:{metadata['version']}"
 
     push_output = subprocess.run(
-        ["docker", "push", image_name_tag], stdout=stdout, cwd=folder
+        ["docker", "push", image_name_tag, "--all-tags"], stdout=stdout, cwd=folder
     )
 
     if push_output.returncode != 0:
