@@ -38,7 +38,7 @@ def gh_error(msg: str) -> None:
 
 
 def gh_warning(msg: str) -> None:
-    print("::error::" + warning)
+    print("::warning::" + msg)
 
 
 def get_changed_folders() -> Set[str]:
@@ -174,29 +174,6 @@ def build_folder(folder: str) -> bool:
     return True
 
 
-### Push ###
-# Assumes docker login has already been done.
-def push_folder(folder: str) -> bool:
-    print(">>>> Push Image <<<<")
-
-    metadata = get_metadata(folder)
-    if metadata is None:
-        return False
-
-    image_name_tag = f"{IMAGE_URL}/{metadata['name']}:{metadata['version']}"
-
-    push_output = subprocess.run(
-        ["docker", "push", image_name_tag], stdout=stdout, cwd=folder
-    )
-
-    if push_output.returncode != 0:
-        gh_error("Failed to push!")
-        return False
-
-    print(f">> Successfully pushed! <<")
-    return True
-
-
 ### Scan for Vulnerabilities ###
 def scan_for_vulnerability(folder: str) -> bool:
     print(">>>> Scan Image for Vulnerabilities <<<<")
@@ -221,36 +198,46 @@ def scan_for_vulnerability(folder: str) -> bool:
     return True
 
 
+### Push ###
+# Assumes docker login has already been done.
+def push_folder(folder: str) -> bool:
+    print(">>>> Push Image <<<<")
+
+    metadata = get_metadata(folder)
+    if metadata is None:
+        return False
+
+    image_name_tag = f"{IMAGE_URL}/{metadata['name']}:{metadata['version']}"
+
+    push_output = subprocess.run(
+        ["docker", "push", image_name_tag], stdout=stdout, cwd=folder
+    )
+
+    if push_output.returncode != 0:
+        gh_error("Failed to push!")
+        return False
+
+    print(f">> Successfully pushed! <<")
+    return True
+
+
 ### Main Functions ###
 def folder_pipeline(folder: str) -> bool:
     print(f"::group::{folder}")
 
-    if not check_required_files(folder):
-        print("::endgroup::")
-        return False
-
-    # Lint
-    if not lint_folder(folder):
-        print("::endgroup::")
-        return False
-
-    # Build
-    if not build_folder(folder):
-        print("::endgroup::")
-        return False
-
-    # Scan for Vulnerabilities
-    if not scan_for_vulnerability(folder):
-        print("::endgroup::")
-        return False
-
-    # Push
-    if not push_folder(folder):
-        print("::endgroup::")
-        return False
+    # Use short circuiting to chain results (if only Python had monads).
+    retval = False
+    if (
+        check_required_files(folder)
+        and lint_folder(folder)
+        and build_folder(folder)
+        and scan_for_vulnerability(folder)
+        and push_folder(folder)
+    ):
+        retval = True
 
     print("::endgroup::")
-    return True
+    return retval
 
 
 def main() -> int:
