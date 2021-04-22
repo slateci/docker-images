@@ -25,6 +25,7 @@ IMAGE_URL = "ghcr.io/slateci"
 #   1. Check if the version being built already exists in the registry.
 #   2. Add force build/push and lint/scan buttons.
 #   3. Push images on non-stable branches (e.g. beta), and clean up those branches after they are merged.
+#   4. Change detection should use commit _from last push_.
 
 # Force print to flush each time it's called.
 print = partial(print, flush=True)
@@ -91,12 +92,31 @@ def get_metadata(folder: str) -> Optional[Dict[str, Any]]:
 
 ### Lint ###
 def lint_folder(folder: str) -> bool:
-    pass
+    print(">>>> Lint Dockerfile <<<<")
+
+    lint_output = subprocess.run(
+        ["hadolint", "--no-fail", "Dockerfile"], capture_output=True, cwd=folder
+    )
+
+    lint_stdout = lint_output.stdout.decode().strip()
+    print(lint_stdout)
+
+    if lint_output.returncode != 0:
+        gh_error("Failed to lint Dockerfile!")
+        return False
+
+    if "error:" in lint_stdout:
+        gh_error("Dockerfile failed linter test!")
+        return False
+
+    print(">> Lint successful! <<")
+
+    return True
 
 
 ### Build ###
 def build_folder(folder: str) -> bool:
-    print(f"Building {folder}...")
+    print(">>>> Build Image <<<<")
 
     metadata = get_metadata(folder)
     if metadata is None:
@@ -148,14 +168,14 @@ def build_folder(folder: str) -> bool:
         gh_error("Failed to build!")
         return False
 
-    print(f"Successfully built!")
+    print(f">> Successfully built! <<")
     return True
 
 
 ### Push ###
 # Assumes docker login has already been done.
 def push_folder(folder: str) -> bool:
-    print("Pushing image...")
+    print(">>>> Push Image <<<<")
 
     metadata = get_metadata(folder)
     if metadata is None:
@@ -171,7 +191,7 @@ def push_folder(folder: str) -> bool:
         gh_error("Failed to push!")
         return False
 
-    print(f"Successfully pushed!")
+    print(f">> Successfully pushed! <<")
     return True
 
 
@@ -189,6 +209,9 @@ def folder_pipeline(folder: str) -> bool:
         return False
 
     # Lint
+    if not lint_folder(folder):
+        print("::endgroup::")
+        return False
 
     # Build
     if not build_folder(folder):
