@@ -1,12 +1,12 @@
 # Metadata about this Docker image. These fields will be added as labels
 # to the image and will be used for image tagging.
 #
-# ** Do not add additional fields! **
-# You can, however, choose to ignore any number of fields.
+# Additional fields will be ignored.
+# name and version are required fields, the rest are optional.
 # See http://label-schema.org/rc1/ for a description of each field.
 name:
 description:
-maintainer: 
+maintainer:
 usage:
 url:
 version:
