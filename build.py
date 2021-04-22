@@ -105,7 +105,7 @@ def lint_folder(folder: str) -> bool:
         gh_error("Failed to lint Dockerfile!")
         return False
 
-    if "error:" in lint_stdout:
+    if "error" in lint_stdout:
         gh_error("Dockerfile failed linter test!")
         return False
 
