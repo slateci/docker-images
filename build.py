@@ -208,7 +208,9 @@ def scan_for_vulnerability(folder: str) -> bool:
     image_name_tag = f"{IMAGE_URL}/{metadata['name']}:{metadata['version']}"
 
     scan_output = subprocess.run(
-        ["docker", "scan", image_name_tag], stdout=stdout, cwd=folder
+        ["docker", "scan", image_name_tag, "--accept-license"],
+        stdout=stdout,
+        cwd=folder,
     )
 
     if scan_output.returncode != 0:
