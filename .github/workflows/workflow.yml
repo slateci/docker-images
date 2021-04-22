@@ -12,8 +12,14 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Authenticate with container registry
+      - name: Authenticate with Github container registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login https://ghcr.io -u $GITHUB_ACTOR --password-stdin
+
+      # TODO: change Docker Hub credentials to SLATE robot account instead of
+      # Emerson's personal account.
+      # This is used for `docker scan`.
+      - name: Authenticate with Docker Hub registry
+        run: echo "${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}" | docker login https://docker.pkg.github.com -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
 
       - name: Install hadolint
         run: |
