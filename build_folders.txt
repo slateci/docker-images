@@ -1,0 +1,15 @@
+basic-auth
+condor-login
+condor-manager
+condor-submit
+condor-worker
+container-login-node
+container-slate-api
+fts3
+globus-connect-v4
+gridftp
+jupyter-condor
+mariadb
+minio
+open-ondemand
+perfsonar-checker

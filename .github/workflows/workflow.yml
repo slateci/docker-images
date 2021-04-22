@@ -1,0 +1,22 @@
+name: Build and Push Container Images
+
+on:
+  push:
+    branches:
+      - stable
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Authenticate with container registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login https://ghcr.io -u $GITHUB_ACTOR --password-stdin
+
+      - name: Install script dependencies
+        run: pip3 install pyyaml
+
+      - name: Run build.py
+        run: ./build.py
