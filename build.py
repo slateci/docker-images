@@ -141,7 +141,6 @@ def build_folder(folder: str) -> bool:
         ]
         + labels_flags,
         stdout=stdout,
-        stderr=stdout,
         cwd=folder,
     )
 
@@ -165,7 +164,7 @@ def push_folder(folder: str) -> bool:
     image_name_tag = f"{IMAGE_URL}/{metadata['name']}:{metadata['version']}"
 
     push_output = subprocess.run(
-        ["docker", "push", image_name_tag], stdout=stdout, stderr=stdout, cwd=folder
+        ["docker", "push", image_name_tag], stdout=stdout, cwd=folder
     )
 
     if push_output.returncode != 0:
