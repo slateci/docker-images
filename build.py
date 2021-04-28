@@ -81,7 +81,9 @@ def check_required_files(folder: str) -> bool:
     return True
 
 
-def get_metadata(folder: str) -> Optional[Tuple[Dict[str, Any], List[str]]]:
+def get_metadata(
+    folder: str, branch: Optional[str] = None
+) -> Optional[Tuple[Dict[str, Any], List[str]]]:
     try:
         with open(f"{folder}/metadata.yml") as f:
             metadata = yaml.load(f.read(), Loader=Loader)
@@ -113,9 +115,11 @@ def get_metadata(folder: str) -> Optional[Tuple[Dict[str, Any], List[str]]]:
 
     tags = []
     for url in IMAGE_URLS:
-        tags.append(f"{url}/{metadata['name']}:{metadata['version']}")
-        # TODO: add check for stable branch here
-        tags.append(f"{url}/{metadata['name']}:latest")
+        if branch and not branch == "stable":
+            tags.append(f"{url}/{metadata['name']}:{branch}")
+        else:
+            tags.append(f"{url}/{metadata['name']}:{metadata['version']}")
+            tags.append(f"{url}/{metadata['name']}:latest")
 
     return metadata, tags
 
@@ -279,8 +283,12 @@ def pipeline(args: argparse.Namespace):
 
         if not (
             check_required_files(folder)
-            and (mt_tuple := get_metadata(folder))
-            and not check_version_exists(mt_tuple[1])
+            and (mt_tuple := get_metadata(folder, args.branch))
+            and not (
+                False
+                if args.ignore_version_check
+                else check_version_exists(mt_tuple[1])
+            )
             and lint_folder(folder)
             and build_folder(folder, *mt_tuple)
             # and scan_for_vulnerability(folder, mt_tuple[1])
@@ -417,6 +425,16 @@ pipeline_p.add_argument(
 )
 pipeline_p.add_argument(
     "--no-push", action="store_true", help="build the image but do not push it"
+)
+pipeline_p.add_argument(
+    "--ignore-version-check",
+    action="store_true",
+    help="push the image even if this version exists",
+)
+pipeline_p.add_argument(
+    "--branch",
+    type=str,
+    help="branch name to use in tag instead of 'latest' and version",
 )
 pipeline_p.set_defaults(func=pipeline)
 

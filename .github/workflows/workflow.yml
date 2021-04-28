@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - stable
+      - !stable
 
 jobs:
   main:
@@ -20,6 +21,11 @@ jobs:
             i=$((i+5))
             git fetch --depth=$i
           done
+
+      - name: Extract branch name
+        shell: bash
+        id: extract_branch
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
 
       - name: Authenticate with Github container registry
         run: echo '${{ secrets.GITHUB_TOKEN }}' | docker login https://ghcr.io -u $GITHUB_ACTOR --password-stdin
@@ -53,5 +59,10 @@ jobs:
       # - name: Install script dependencies
       #   run: pip3 install pyyaml
 
-      - name: Run build.py
+      - name: Run build.py on stable
         run: ./build.py pipeline ${{ github.event.before }} ${{ github.event.after }}
+        if: ${{ steps.extract_branch.outputs.branch == 'stable' }}
+
+      - name: Run build.py on branch ${{ steps.extract_branch.outputs.branch }}
+        run: ./build.py pipeline ${{ github.event.before }} ${{ github.event.after }} --ignore-version-check --branch '${{ steps.extract_branch.outputs.branch }}'
+        if: ${{ steps.extract_branch.outputs.branch != 'stable' }}
