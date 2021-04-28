@@ -284,7 +284,7 @@ def pipeline(args: argparse.Namespace):
             and lint_folder(folder)
             and build_folder(folder, *mt_tuple)
             # and scan_for_vulnerability(folder, mt_tuple[1])
-            and push_folder(folder, mt_tuple[1])
+            and (True if args.no_push else push_folder(folder, mt_tuple[1]))
         ):
             failed.append(folder)
 
@@ -414,6 +414,9 @@ pipeline_p.add_argument(
     "to_commit",
     type=str,
     help="commit SHA to which to search for changes (inclusive)",
+)
+pipeline_p.add_argument(
+    "--no-push", action="store_true", help="build the image but do not push it"
 )
 pipeline_p.set_defaults(func=pipeline)
 
