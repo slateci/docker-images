@@ -12,8 +12,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-	  - name: Fetch commit history until ${{ github.event.before }}
-		run: |
+      - name: Fetch commit history until ${{ github.event.before }}
+        run: |
           i=1
           until git show ${{ github.event.before }} > /dev/null
           do
