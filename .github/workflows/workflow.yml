@@ -30,6 +30,9 @@ jobs:
       - name: Authenticate with Docker Hub registry
         run: echo "${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}" | docker login https://docker.pkg.github.com -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
 
+      - name: Authenticate with OSG Hub
+        run: echo "${{ secrets.OSG_HUB_ACCESS_TOKEN }}" | docker login https://hub.opensciencegrid.org -u "${{ secrets.OSG_HUB_USERNAME }}" --password-stdin
+
       - name: Install hadolint
         run: |
           mkdir -p $GITHUB_WORKSPACE/bin
