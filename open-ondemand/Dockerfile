@@ -32,8 +32,8 @@ WORKDIR /root
 # Install OnDemand
 RUN yum install -y https://yum.osc.edu/ondemand/1.8/ondemand-release-web-1.8-1.noarch.rpm && \
     yum install -y ondemand && \
+    yum install -y ondemand-selinux && \
     yum clean all
-RUN yum install ondemand-selinux -y
 
 # Install openid auth mod
 RUN yum install -y httpd24-mod_auth_openidc
