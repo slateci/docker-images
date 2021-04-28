@@ -159,6 +159,15 @@ def build_folder(folder: str, metadata: Dict[str, Any], tags: List[str]) -> bool
     for t in tags:
         tag_flags += ["--tag", t]
 
+    # Pull image caches.
+    subprocess.run(
+        [
+            "docker",
+            "pull",
+            f"{IMAGE_URL}/{metadata['name']}:latest",
+        ],
+    )
+
     build_output = subprocess.run(
         [
             "docker",
