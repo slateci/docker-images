@@ -290,7 +290,7 @@ def push_folder(folder: str, tags: List[str]) -> bool:
 
 
 ### Main Functions ###
-def pipeline(args: argparse.Namespace):
+def pipeline(args: argparse.Namespace) -> int:
     changed_folders = get_changed_folders(args.from_commit, args.to_commit)
 
     print(f"Detected changes in folders: {', '.join(changed_folders)}")
@@ -325,10 +325,10 @@ def pipeline(args: argparse.Namespace):
     return 0
 
 
-def lint_all(args: argparse.Namespace):
+def lint(args: argparse.Namespace, folders: Set[str]) -> int:
     failed = []
 
-    for folder in get_build_folders():
+    for folder in folders:
         print(f"::group::{folder}")
 
         if not (
@@ -348,75 +348,44 @@ def lint_all(args: argparse.Namespace):
     return 0
 
 
+def lint_all(args: argparse.Namespace) -> int:
+    return lint(args, get_build_folders())
+
+
 def lint_some(args: argparse.Namespace):
+    return lint(args, set(args.folders.split(",")) & get_build_folders())
+
+
+def force_build(args: argparse.Namespace, folders: Set[str]) -> int:
     failed = []
 
-    for folder in set(args.folders.split(",")) & get_build_folders():
+    for folder in folders:
         print(f"::group::{folder}")
 
         if not (
             check_required_files(folder)
-            and get_metadata(folder)
-            and lint_folder(folder)
+            and (mt_tuple := get_metadata(folder, args.branch))
+            and build_folder(folder, *mt_tuple)
+            and push_folder(folder, mt_tuple[1])
         ):
             failed.append(folder)
 
         print("::endgroup::")
 
     if len(failed) != 0:
-        gh_error(f"The following images failed to lint: {', '.join(failed)}")
+        gh_error(f"The following images failed to build: {', '.join(failed)}")
         return 1
 
-    print("Successfully linted all images!")
+    print("Successfully built all images!")
     return 0
 
 
 def force_build_all(args: argparse.Namespace):
-    failed = []
-
-    for folder in get_build_folders():
-        print(f"::group::{folder}")
-
-        if not (
-            check_required_files(folder)
-            and (mt_tuple := get_metadata(folder))
-            and build_folder(folder, *mt_tuple)
-            and push_folder(folder, mt_tuple[1])
-        ):
-            failed.append(folder)
-
-        print("::endgroup::")
-
-    if len(failed) != 0:
-        gh_error(f"The following images failed to build: {', '.join(failed)}")
-        return 1
-
-    print("Successfully built all images!")
-    return 0
+    return force_build(args, get_build_folders())
 
 
 def force_build_some(args: argparse.Namespace):
-    failed = []
-
-    for folder in set(args.folders.split(",")) & get_build_folders():
-        print(f"::group::{folder}")
-
-        if not (
-            check_required_files(folder)
-            and (mt_tuple := get_metadata(folder))
-            and build_folder(folder, *mt_tuple)
-            and push_folder(folder, mt_tuple[1])
-        ):
-            failed.append(folder)
-
-        print("::endgroup::")
-
-    if len(failed) != 0:
-        gh_error(f"The following images failed to build: {', '.join(failed)}")
-        return 1
-
-    print("Successfully built all images!")
-    return 0
+    return force_build(args, set(args.folders.split(",")) & get_build_folders())
 
 
 parser = argparse.ArgumentParser(
@@ -476,6 +445,11 @@ force_build_all_p = subparsers.add_parser(
     description="Force build and push all folders (ignoring lint, version existence, and vulnerability errors).",
     help="Force build and push all folders (ignoring lint, version existence, and vulnerability errors)",
 )
+force_build_all_p.add_argument(
+    "--branch",
+    type=str,
+    help="branch name to use in tag instead of 'latest' and version",
+)
 force_build_all_p.set_defaults(func=force_build_all)
 
 force_build_some_p = subparsers.add_parser(
@@ -486,6 +460,11 @@ force_build_some_p = subparsers.add_parser(
 force_build_some_p.add_argument(
     "folders",
     help="comma separated list of folders to force build",
+)
+force_build_some_p.add_argument(
+    "--branch",
+    type=str,
+    help="branch name to use in tag instead of 'latest' and version",
 )
 force_build_some_p.set_defaults(func=force_build_some)
 
