@@ -115,11 +115,11 @@ def get_metadata(
 
     tags = []
     for url in IMAGE_URLS:
-        if branch and not branch == "stable":
-            tags.append(f"{url}/{metadata['name']}:{branch}")
-        else:
+        if not branch or branch == "stable":
             tags.append(f"{url}/{metadata['name']}:{metadata['version']}")
             tags.append(f"{url}/{metadata['name']}:latest")
+        else:
+            tags.append(f"{url}/{metadata['name']}:{branch}")
 
     return metadata, tags
 
