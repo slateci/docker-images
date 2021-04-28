@@ -16,7 +16,7 @@ Images in the `stable` branch will automatically receive the 'latest' tag.
 1. Automatically builds and pushes Docker images on changes.
 2. Build failure in one folder will not prevent other builds in other folders.
 3. Encourages Dockerfile best practices with lint, avoiding version overrides, etc.
-4. Automatically adds (label-schema)[http://label-schema.org/rc1/] labels to every built Docker image.
+4. Automatically adds [label-schema](http://label-schema.org/rc1/) labels to every built Docker image.
 
 ## Adding a New Image
 Copy the `examples` folder and add the new folder name to `build_folders.txt`.
