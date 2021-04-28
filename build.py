@@ -1,5 +1,17 @@
 #!/usr/bin/env python3
 
+"""
+Builds Docker images found in github.com/slateci/docker-images.
+
+This script assumes the following:
+1. pyyaml Python package is installed.
+2. hadolint is installed and on $PATH.
+3. `docker scan` plugin is installed.
+4. Docker Buildx is configured to be used by default.
+5. `docker login` has been called for each registry.
+"""
+
+import argparse
 import datetime
 import subprocess
 from functools import partial
@@ -42,14 +54,15 @@ def gh_warning(msg: str) -> None:
     print("::warning::" + msg)
 
 
-def get_changed_folders() -> Set[str]:
+def get_changed_folders(from_commit: str, to_commit: str) -> Set[str]:
     # Get the list of folders we should be building.
     with open(BUILD_FOLDERS_FILE) as f:
         folders = set(f.read().splitlines())
 
     # Get the list of folders that have changes from the last commit.
     git_diff = subprocess.run(
-        ["git", "diff", "--name-only", "HEAD^..HEAD"], capture_output=True
+        ["git", "diff", "--name-only", f"{from_commit}..{to_commit}"],
+        capture_output=True,
     )
 
     # Return only the folders we care about.
@@ -163,6 +176,7 @@ def build_folder(folder: str, metadata: Dict[str, Any], tags: List[str]) -> bool
     build_output = subprocess.run(
         [
             "docker",
+            "buildx",
             "build",
             ".",
             "--file",
@@ -209,7 +223,6 @@ def scan_for_vulnerability(folder: str, tags: List[str]) -> bool:
 
 
 ### Push ###
-# Assumes docker login has already been done.
 def push_folder(folder: str, tags: List[str]) -> bool:
     print(">>>> Push Image <<<<")
 
@@ -244,9 +257,36 @@ def main_pipeline(folder: str) -> bool:
     return retval
 
 
+parser = argparse.ArgumentParser(
+    description="""
+Builds Docker images for slateci/docker-images.
+Only one mode's flags may be used.
+Folders must be listed in build_folders.txt for any of these actions.
+"""
+)
+
+commit_group = parser.add_argument_group(
+    title="Build on Changes",
+    description="""
+Build any folder with changes between from-commit to to-commit.
+""",
+)
+commit_group.add_argument(
+    "--from-commit", help="commit SHA from which to search for changes (exclusive)"
+)
+commit_group.add_argument(
+    "--to-commit", help="commit SHA to which to search for changes (inclusive)"
+)
+
+
 def main() -> int:
-    changed_folders = get_changed_folders()
-    changed_folders = {"basic-auth"}
+    args = parser.parse_args()
+
+    if bool(args.from_commit) ^ bool(args.to_commit):
+        parser.error("--from-commit and --to-commit must be given together")
+        return 1
+
+    changed_folders = get_changed_folders(args.from_commit, args.to_commit)
 
     print(f"Detected changes in folders: {', '.join(changed_folders)}")
 
