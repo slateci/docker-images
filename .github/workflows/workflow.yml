@@ -15,7 +15,7 @@ jobs:
       - name: Fetch commit history until ${{ github.event.before }}
         run: |
           i=1
-          until git show ${{ github.event.before }} > /dev/null
+          until git show ${{ github.event.before }} &> /dev/null
           do
             i=$((i+5))
             git fetch --depth=$i
