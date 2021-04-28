@@ -35,6 +35,11 @@ jobs:
           sudo apt update
           sudo apt install docker-scan-plugin -y
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+        with:
+          install: true
+
       # - name: Install script dependencies
       #   run: pip3 install pyyaml
 
