@@ -125,7 +125,7 @@ def check_version_exists(tags: List[str]) -> bool:
             ["docker", "manifest", "inspect", t], capture_output=True
         )
 
-        if check.returncode != 0:
+        if check.returncode == 0:
             gh_error(f"{t} already exists, stopping...")
             print(
                 "Overriding existing versions of a container is _dangerous_ "
