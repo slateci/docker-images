@@ -2,8 +2,8 @@ FROM centos:7
 
 # Security updates necessary as of 2021/04/28
 RUN yum install -y --security --bugfix python && \
-    yum install -y --security --bugfix glibc && \
     yum install -y --security --bugfix curl && \
+    yum install -y --security --bugfix glibc && \
     yum install -y --security --bugfix libldb
 
 RUN yum install -y epel-release && \
