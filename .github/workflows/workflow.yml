@@ -12,6 +12,15 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+	  - name: Fetch commit history until ${{ github.event.before }}
+		run: |
+          i=1
+          until git show ${{ github.event.before }} > /dev/null
+          do
+            i=$((i+5))
+            git fetch --depth=$i
+          done
+
       - name: Authenticate with Github container registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login https://ghcr.io -u $GITHUB_ACTOR --password-stdin
 

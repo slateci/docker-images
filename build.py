@@ -67,7 +67,8 @@ def get_changed_folders(from_commit: str, to_commit: str) -> Set[str]:
 
     # Return only the folders we care about.
     return (
-        set(map(lambda x: x.split("/")[0], git_diff.stdout.decode().split())) & folders
+        set(map(lambda x: x.split("/")[0], git_diff.stdout.decode().splitlines()))
+        & folders
     )
 
 
