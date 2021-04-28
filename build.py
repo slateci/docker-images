@@ -160,14 +160,6 @@ def build_folder(folder: str, metadata: Dict[str, Any], tags: List[str]) -> bool
         tag_flags += ["--tag", t]
 
     # Pull image caches.
-    subprocess.run(
-        [
-            "docker",
-            "pull",
-            f"{IMAGE_URL}/{metadata['name']}:latest",
-        ],
-    )
-
     build_output = subprocess.run(
         [
             "docker",
@@ -175,8 +167,14 @@ def build_folder(folder: str, metadata: Dict[str, Any], tags: List[str]) -> bool
             ".",
             "--file",
             "Dockerfile",
-            "--cache-from",
-            f"{IMAGE_URL}/{metadata['name']}:latest",
+            f"--cache-from=type=registry,ref={IMAGE_URL}/{metadata['name']}:latest",
+            "--output=type=docker",
+            # This appears to be faster and pushes all tags at once but doesn't
+            # allow us to scan for vulnerabilities before pushing.
+            # "--output=type=registry",
+            # Add cache metadata to the image itself.
+            # Alternatively, "--cache-to=type=registry" might work.
+            "--cache-to=type=inline",
         ]
         + labels_flags
         + tag_flags,
