@@ -192,7 +192,10 @@ def build_folder(folder: str, metadata: Dict[str, Any], tags: List[str]) -> bool
     ).isoformat()
     labels["org.label-schema.vcs-url"] = "https://github.com/slateci/docker-images"
     labels["org.label-schema.vcs-ref"] = (
-        subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True)
+        subprocess.run(
+            ["git", "log", "-n", "1", "--pretty=format:%H", "--", folder],
+            capture_output=True,
+        )
         .stdout.decode()
         .strip()
     )
@@ -307,7 +310,7 @@ def pipeline(args: argparse.Namespace):
             )
             and lint_folder(folder)
             and build_folder(folder, *mt_tuple)
-            # and scan_for_vulnerability(folder, mt_tuple[1])
+            and scan_for_vulnerability(folder, mt_tuple[1])
             and (True if args.no_push else push_folder(folder, mt_tuple[1]))
         ):
             failed.append(folder)
