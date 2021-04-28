@@ -26,6 +26,10 @@ Copy the `examples` folder and add the new folder name to `build_folders.txt`.
 Make your changes to an image and increment the `version` field in `metadata.yml`.
 Pushing your changes to `stable` will automatically trigger a new image build.
 
+## Branches
+When a branch is pushed to this repo, any folders that change in the branch will be built and pushed with the version tag set to that branch's name.
+The version listed in `metadata.yml` will be ignored, but PRs will still check for version conflicts.
+
 ## FAQ
 ### Where are containers pushed to?
 Containers are currently pushed to both 'ghcr.io/slateci' and 'hub.opensciencegrid.org/slate'.
