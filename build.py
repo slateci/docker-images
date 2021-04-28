@@ -33,11 +33,6 @@ SLATE_FIELDS = ["maintainer"]
 
 IMAGE_URLS = ["ghcr.io/slateci", "hub.opensciencegrid.org/slate"]
 
-# TODO:
-#   1. Push images on non-stable branches (e.g. beta), and clean up those branches after they are merged.
-#   2. Add GH action cron job to check for vulnerabilities.
-#   3. Set Docker image ref label to SHA of commit that actually changed it, not on the push.
-
 # Force print to flush each time it's called.
 print = partial(print, flush=True)
 
