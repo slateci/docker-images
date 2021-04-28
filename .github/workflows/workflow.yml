@@ -3,7 +3,10 @@ name: Lint, Build, and Push Container Images
 on:
   push:
     branches:
-      - '**'
+      - stable
+
+  pull_request:
+    types: ['opened', 'edited', 'reopened', 'synchronize']
 
 jobs:
   main:
