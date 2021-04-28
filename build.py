@@ -34,7 +34,6 @@ SLATE_FIELDS = ["maintainer"]
 IMAGE_URL = "ghcr.io/slateci"
 
 # TODO:
-#   2. Add force build/push and lint/scan buttons.
 #   3. Push images on non-stable branches (e.g. beta), and clean up those branches after they are merged.
 #   5. Add GH action cron job to check for vulnerabilities.
 
@@ -52,10 +51,14 @@ def gh_warning(msg: str) -> None:
     print("::warning::" + msg)
 
 
+def get_build_folders() -> Set[str]:
+    with open(BUILD_FOLDERS_FILE) as f:
+        return set(f.read().splitlines())
+
+
 def get_changed_folders(from_commit: str, to_commit: str) -> Set[str]:
     # Get the list of folders we should be building.
-    with open(BUILD_FOLDERS_FILE) as f:
-        folders = set(f.read().splitlines())
+    folders = get_build_folders()
 
     # Get the list of folders that have changes from the last commit.
     git_diff = subprocess.run(
@@ -262,55 +265,7 @@ def push_folder(folder: str, tags: List[str]) -> bool:
 
 
 ### Main Functions ###
-def main_pipeline(folder: str) -> bool:
-    print(f"::group::{folder}")
-
-    # Use short circuiting to chain results (if only Python had monads).
-    retval = False
-    if (
-        check_required_files(folder)
-        and (mt_tuple := get_metadata(folder))
-        and not check_version_exists(mt_tuple[1])
-        # and lint_folder(folder)
-        and build_folder(folder, *mt_tuple)
-        # and scan_for_vulnerability(folder, mt_tuple[1])
-        and push_folder(folder, mt_tuple[1])
-    ):
-        retval = True
-
-    print("::endgroup::")
-    return retval
-
-
-parser = argparse.ArgumentParser(
-    description="""
-Builds Docker images for slateci/docker-images.
-Only one mode's flags may be used.
-Folders must be listed in build_folders.txt for any of these actions.
-"""
-)
-
-commit_group = parser.add_argument_group(
-    title="Build on Changes",
-    description="""
-Build any folder with changes between from-commit to to-commit.
-""",
-)
-commit_group.add_argument(
-    "--from-commit", help="commit SHA from which to search for changes (exclusive)"
-)
-commit_group.add_argument(
-    "--to-commit", help="commit SHA to which to search for changes (inclusive)"
-)
-
-
-def main() -> int:
-    args = parser.parse_args()
-
-    if bool(args.from_commit) ^ bool(args.to_commit):
-        parser.error("--from-commit and --to-commit must be given together")
-        return 1
-
+def pipeline(args: argparse.Namespace):
     changed_folders = get_changed_folders(args.from_commit, args.to_commit)
 
     print(f"Detected changes in folders: {', '.join(changed_folders)}")
@@ -318,8 +273,20 @@ def main() -> int:
     failed = []
 
     for folder in changed_folders:
-        if not main_pipeline(folder):
+        print(f"::group::{folder}")
+
+        if not (
+            check_required_files(folder)
+            and (mt_tuple := get_metadata(folder))
+            and not check_version_exists(mt_tuple[1])
+            and lint_folder(folder)
+            and build_folder(folder, *mt_tuple)
+            # and scan_for_vulnerability(folder, mt_tuple[1])
+            and push_folder(folder, mt_tuple[1])
+        ):
             failed.append(folder)
+
+        print("::endgroup::")
 
     if len(failed) != 0:
         gh_error(f"The following images failed to build: {', '.join(failed)}")
@@ -329,5 +296,157 @@ def main() -> int:
     return 0
 
 
+def lint_all(args: argparse.Namespace):
+    failed = []
+
+    for folder in get_build_folders():
+        print(f"::group::{folder}")
+
+        if not (
+            check_required_files(folder)
+            and get_metadata(folder)
+            and lint_folder(folder)
+        ):
+            failed.append(folder)
+
+        print("::endgroup::")
+
+    if len(failed) != 0:
+        gh_error(f"The following images failed to lint: {', '.join(failed)}")
+        return 1
+
+    print("Successfully linted all images!")
+    return 0
+
+
+def lint_some(args: argparse.Namespace):
+    failed = []
+
+    for folder in set(args.folders.split(",")) & get_build_folders():
+        print(f"::group::{folder}")
+
+        if not (
+            check_required_files(folder)
+            and get_metadata(folder)
+            and lint_folder(folder)
+        ):
+            failed.append(folder)
+
+        print("::endgroup::")
+
+    if len(failed) != 0:
+        gh_error(f"The following images failed to lint: {', '.join(failed)}")
+        return 1
+
+    print("Successfully linted all images!")
+    return 0
+
+
+def force_build_all(args: argparse.Namespace):
+    failed = []
+
+    for folder in get_build_folders():
+        print(f"::group::{folder}")
+
+        if not (
+            check_required_files(folder)
+            and (mt_tuple := get_metadata(folder))
+            and build_folder(folder, *mt_tuple)
+            and push_folder(folder, mt_tuple[1])
+        ):
+            failed.append(folder)
+
+        print("::endgroup::")
+
+    if len(failed) != 0:
+        gh_error(f"The following images failed to build: {', '.join(failed)}")
+        return 1
+
+    print("Successfully built all images!")
+    return 0
+
+
+def force_build_some(args: argparse.Namespace):
+    failed = []
+
+    for folder in set(args.folders.split(",")) & get_build_folders():
+        print(f"::group::{folder}")
+
+        if not (
+            check_required_files(folder)
+            and (mt_tuple := get_metadata(folder))
+            and build_folder(folder, *mt_tuple)
+            and push_folder(folder, mt_tuple[1])
+        ):
+            failed.append(folder)
+
+        print("::endgroup::")
+
+    if len(failed) != 0:
+        gh_error(f"The following images failed to build: {', '.join(failed)}")
+        return 1
+
+    print("Successfully built all images!")
+    return 0
+
+
+parser = argparse.ArgumentParser(
+    description="""
+Builds Docker images for slateci/docker-images.
+Folders must be listed in build_folders.txt for any of these actions.
+"""
+)
+subparsers = parser.add_subparsers()
+
+pipeline_p = subparsers.add_parser(
+    "pipeline",
+    description="Lint / Build / Push folders that have changed between specified commits.",
+    help="Lint / Build / Push folders that have changed between specified commits",
+)
+pipeline_p.add_argument(
+    "from_commit",
+    type=str,
+    help="commit SHA from which to search for changes (exclusive)",
+)
+pipeline_p.add_argument(
+    "to_commit",
+    type=str,
+    help="commit SHA to which to search for changes (inclusive)",
+)
+pipeline_p.set_defaults(func=pipeline)
+
+lint_all_p = subparsers.add_parser(
+    "lint-all", description="Lint all folders.", help="Lint all folders"
+)
+lint_all_p.set_defaults(func=lint_all)
+
+lint_some_p = subparsers.add_parser(
+    "lint", description="Lint specified folders.", help="Lint some folders"
+)
+lint_some_p.add_argument(
+    "folders",
+    help="comma separated list of folders to lint",
+)
+lint_some_p.set_defaults(func=lint_some)
+
+force_build_all_p = subparsers.add_parser(
+    "force-build-all",
+    description="Force build and push all folders (ignoring lint, version existence, and vulnerability errors).",
+    help="Force build and push all folders (ignoring lint, version existence, and vulnerability errors)",
+)
+force_build_all_p.set_defaults(func=force_build_all)
+
+force_build_some_p = subparsers.add_parser(
+    "force-build",
+    description="Force build and push specified folders (ignoring lint, version existence, and vulnerability errors).",
+    help="Force build and push some folders (ignoring lint, version existence, and vulnerability errors)",
+)
+force_build_some_p.add_argument(
+    "folders",
+    help="comma separated list of folders to force build",
+)
+force_build_some_p.set_defaults(func=force_build_some)
+
 if __name__ == "__main__":
-    exit(main())
+    args = parser.parse_args()
+    exit(args.func(args))

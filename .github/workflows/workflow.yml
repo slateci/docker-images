@@ -1,4 +1,4 @@
-name: Build and Push Container Images
+name: Lint, Build, and Push Container Images
 
 on:
   push:
@@ -51,4 +51,4 @@ jobs:
       #   run: pip3 install pyyaml
 
       - name: Run build.py
-        run: ./build.py --from-commit ${{ github.event.before }} --to-commit ${{ github.event.after }}
+        run: ./build.py pipeline ${{ github.event.before }} ${{ github.event.after }}
