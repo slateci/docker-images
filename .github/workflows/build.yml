@@ -26,12 +26,11 @@ jobs:
 
       # - name: Install script dependencies
       #   run: pip3 install pyyaml
-      - run: echo '${{ github.events.inputs.folders }}'
 
       - name: Run build.py force-build-all
         run: ./build.py force-build-all
-        if: ${{ github.events.inputs.folders == 'ALL' }}
+        if: ${{ github.event.inputs.folders == 'ALL' }}
 
       - name: Run build.py force-build
         run: ./build.py force-build ${{ github.events.inputs.folders }}
-        if: ${{ github.events.inputs.folders != 'ALL' }}
+        if: ${{ github.event.inputs.folders != 'ALL' }}
