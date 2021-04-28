@@ -1,7 +1,7 @@
 FROM centos:7
 
 RUN yum install -y epel-release && \
-    yum install -y openssh-server supervisor sssd authconfig && \
+    yum install -y sssd authconfig openssh-server supervisor && \
     yum clean all
 
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
