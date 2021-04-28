@@ -11,6 +11,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        if: ${{ github.event.before != '0000000000000000000000000000000000000000' }}
+
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+        if: ${{ github.event.before == '0000000000000000000000000000000000000000' }}
 
       - name: Fetch commit history until ${{ github.event.before }}
         run: |
@@ -20,6 +26,7 @@ jobs:
             i=$((i+5))
             git fetch --depth=$i
           done
+        if: ${{ github.event.before != '0000000000000000000000000000000000000000' }}
 
       - name: Extract branch name
         shell: bash
