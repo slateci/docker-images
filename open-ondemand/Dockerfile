@@ -1,7 +1,8 @@
 FROM centos:7
 RUN yum update -y && \
     yum install -y epel-release && \
-    yum install -y supervisor centos-release-scl subscription-manager openssh-server openssh-clients wget
+    yum install -y supervisor centos-release-scl subscription-manager openssh-server openssh-clients && \
+    yum install -y wget 
 
 # Set up SSSD and edit PAM files
 # RUN yum install -y sssd authconfig openldap oddjob-mkhomedir && \
