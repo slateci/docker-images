@@ -50,7 +50,5 @@ Increment the minor number of the `version` field in `metadata.yml`.
 Github Action files are stored in `.github/workflows`. The build script is located at `build.py`.
 
 ## Todo
-1. Add support for branches / pull requests (push new image, cleanup image on merge, etc).
 2. Add Github Action cron job for checking image vulnerabilities.
 3. Set Docker image ref label to the SHA of the commit from the last change, not on the push commit.
-4. Reenable vulnerability scanner.
