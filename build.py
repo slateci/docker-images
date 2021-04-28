@@ -205,6 +205,22 @@ def build_folder(folder: str, metadata: Dict[str, Any], tags: List[str]) -> bool
     for t in tags:
         tag_flags += ["--tag", t]
 
+    # Clean Docker cache
+    cache_clean = subprocess.run(["docker", "buildx", "prune", "-a", "-f"])
+
+    if cache_clean.returncode != 0:
+        gh_error("Failed to clean build cache!")
+        return False
+
+    # Delete all existing Docker images.
+    image_clean = subprocess.run(
+        ["docker", "rmi", "$(docker images -a -q)", "-f"], shell=True
+    )
+
+    if image_clean.returncode != 0:
+        gh_error("Failed to clean image cache!")
+        return False
+
     # Pull image caches.
     build_output = subprocess.run(
         [
