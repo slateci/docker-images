@@ -31,7 +31,7 @@ BUILD_FOLDERS_FILE = "build_folders.txt"
 LABEL_SCHEMA_FIELDS = ["name", "description", "maintainer", "usage", "url", "version"]
 SLATE_FIELDS = ["maintainer"]
 
-IMAGE_URL = "ghcr.io/slateci"
+IMAGE_URLS = ["ghcr.io/slateci", "hub.opensciencegrid.org/slate"]
 
 # TODO:
 #   3. Push images on non-stable branches (e.g. beta), and clean up those branches after they are merged.
@@ -111,11 +111,13 @@ def get_metadata(folder: str) -> Optional[Tuple[Dict[str, Any], List[str]]]:
         gh_error("'version' field missing in metadata.yml!")
         return None
 
-    # TODO: add check for stable branch here
-    return metadata, [
-        f"{IMAGE_URL}/{metadata['name']}:{metadata['version']}",
-        f"{IMAGE_URL}/{metadata['name']}:latest",
-    ]
+    tags = []
+    for url in IMAGE_URLS:
+        tags.append(f"{url}/{metadata['name']}:{metadata['version']}")
+        # TODO: add check for stable branch here
+        tags.append(f"{url}/{metadata['name']}:latest")
+
+    return metadata, tags
 
 
 ### Check if Version Exists ###
@@ -208,7 +210,7 @@ def build_folder(folder: str, metadata: Dict[str, Any], tags: List[str]) -> bool
             ".",
             "--file",
             "Dockerfile",
-            f"--cache-from=type=registry,ref={IMAGE_URL}/{metadata['name']}:latest",
+            f"--cache-from=type=registry,ref={IMAGE_URLS[0]}/{metadata['name']}:latest",
             "--output=type=docker",
             # This appears to be faster and pushes all tags at once but doesn't
             # allow us to scan for vulnerabilities before pushing.
