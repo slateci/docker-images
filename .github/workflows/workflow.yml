@@ -25,6 +25,10 @@ jobs:
           i=1
           until git show ${{ github.event.before }} &> /dev/null
           do
+            if [[ $i -gt 100 ]]; then
+              break
+            fi
+
             i=$((i+5))
             git fetch --depth=$i
           done
