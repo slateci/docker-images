@@ -3,8 +3,7 @@ name: Lint, Build, and Push Container Images
 on:
   push:
     branches:
-      - stable
-      - !stable
+      - '**'
 
 jobs:
   main:
