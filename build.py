@@ -34,10 +34,8 @@ SLATE_FIELDS = ["maintainer"]
 IMAGE_URL = "ghcr.io/slateci"
 
 # TODO:
-#   1. Check if the version being built already exists in the registry.
 #   2. Add force build/push and lint/scan buttons.
 #   3. Push images on non-stable branches (e.g. beta), and clean up those branches after they are merged.
-#   4. Change detection should use commit _from last push_.
 #   5. Add GH action cron job to check for vulnerabilities.
 
 # Force print to flush each time it's called.
@@ -115,6 +113,31 @@ def get_metadata(folder: str) -> Optional[Tuple[Dict[str, Any], List[str]]]:
         f"{IMAGE_URL}/{metadata['name']}:{metadata['version']}",
         f"{IMAGE_URL}/{metadata['name']}:latest",
     ]
+
+
+### Check if Version Exists ###
+def check_version_exists(tags: List[str]) -> bool:
+    for t in tags:
+        if t.endswith(":latest"):
+            continue
+
+        check = subprocess.run(
+            ["docker", "manifest", "inspect", t], capture_output=True
+        )
+
+        if check.returncode != 0:
+            gh_error(f"{t} already exists, stopping...")
+            print(
+                "Overriding existing versions of a container is _dangerous_ "
+                "and should be avoided if possible. We recommend incrementing "
+                "the version number in metadata.yml instead or ignoring this "
+                "error if these commits do not substantially change the container "
+                "(e.g. adding whitespace / comments to files). If you know what "
+                "you are doing, you can force a build/push from the Actions tab."
+            )
+            return True
+
+    return False
 
 
 ### Lint ###
@@ -247,6 +270,7 @@ def main_pipeline(folder: str) -> bool:
     if (
         check_required_files(folder)
         and (mt_tuple := get_metadata(folder))
+        and not check_version_exists(mt_tuple[1])
         # and lint_folder(folder)
         and build_folder(folder, *mt_tuple)
         # and scan_for_vulnerability(folder, mt_tuple[1])
