@@ -113,7 +113,7 @@ def get_metadata(
         gh_error("'version' field is prohibited to be 'latest'.")
         return None
 
-    tags = []
+    tags = [f"{metadata['name']}:{branch}"]
     for url in IMAGE_URLS:
         if not branch or branch == "stable":
             tags.append(f"{url}/{metadata['name']}:{metadata['version']}")
@@ -126,7 +126,7 @@ def get_metadata(
 
 ### Check if Version Exists ###
 def check_version_exists(tags: List[str]) -> bool:
-    for t in tags:
+    for t in tags[1:]:
         if t.endswith(":latest"):
             continue
 
@@ -284,7 +284,7 @@ def scan_for_vulnerability(folder: str, tags: List[str]) -> bool:
     print("running `docker scan " + tags[0] + " --accept-license`")
 
     scan_output = subprocess.run(
-        ["docker", "scan", tags[0], "--accept-license"],
+        ["docker", "scan", f"'{tags[0]}'", "--accept-license", "--file", "Dockerfile"],
         stdout=stdout,
         cwd=folder,
     )
@@ -301,7 +301,7 @@ def scan_for_vulnerability(folder: str, tags: List[str]) -> bool:
 def push_folder(folder: str, tags: List[str]) -> bool:
     print(">>>> Push Image <<<<")
 
-    for t in tags:
+    for t in tags[1:]:
         push_output = subprocess.run(["docker", "push", t], stdout=stdout, cwd=folder)
 
         if push_output.returncode != 0:
