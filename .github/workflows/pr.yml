@@ -1,4 +1,4 @@
-name: Lint, Build, and Push Container Images
+name: PR - Lint, Build, and Push Container Images
 
 on:
   pull_request:
