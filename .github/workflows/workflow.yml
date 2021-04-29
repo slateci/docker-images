@@ -39,6 +39,9 @@ jobs:
           echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
           chmod +x $GITHUB_WORKSPACE/bin/hadolint
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
       - name: Install Docker scan plugin
         run: |
           curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
@@ -49,9 +52,6 @@ jobs:
       # TODO: change to SLATE robot acct instead of Emerson's personal acct
       - name: Authenticate with Synk
         run: docker scan --login --token '${{ secrets.SYNK_TOKEN }}' --accept-license
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
 
       # - name: Install script dependencies
       #   run: pip3 install pyyaml
