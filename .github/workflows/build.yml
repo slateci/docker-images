@@ -18,11 +18,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Extract branch name
-        shell: bash
-        id: extract_branch
-        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-
       - name: Authenticate with Github container registry
         run: echo '${{ secrets.GITHUB_TOKEN }}' | docker login https://ghcr.io -u $GITHUB_ACTOR --password-stdin
 
@@ -36,9 +31,9 @@ jobs:
       #   run: pip3 install pyyaml
 
       - name: Run build.py force-build-all
-        run: ./build.py force-build-all --branch '${{ steps.extract_branch.outputs.branch }}'
+        run: ./build.py force-build-all
         if: ${{ github.event.inputs.folders == 'ALL' }}
 
       - name: Run build.py force-build
-        run: ./build.py force-build ${{ github.events.inputs.folders }} --branch '${{ steps.extract_branch.outputs.branch }}'
+        run: ./build.py force-build ${{ github.events.inputs.folders }}
         if: ${{ github.event.inputs.folders != 'ALL' }}
