@@ -260,10 +260,8 @@ def build_folder(folder: str, metadata: Dict[str, Any], tags: List[str]) -> bool
 def scan_for_vulnerability(folder: str, tags: List[str]) -> bool:
     print(">>>> Scan Image for Vulnerabilities <<<<")
 
-    subprocess.run(["ls", "-la"], cwd=folder)
-
     scan_output = subprocess.run(
-        ["docker", "scan", "--accept-license", "-f", "./Dockerfile", f"{tags[0]}"],
+        ["docker", "scan", "--accept-license", f"{tags[0]}"],
         stdout=stdout,
         cwd=folder,
     )
