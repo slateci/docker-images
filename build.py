@@ -217,27 +217,6 @@ def build_folder(folder: str, metadata: Dict[str, Any], tags: List[str]) -> bool
         gh_error("Failed to clean build cache!")
         return False
 
-    # Delete all existing Docker images.
-    # image_list = subprocess.run(["docker", "images", "-a", "-q"], capture_output=True)
-
-    # if image_list.returncode != 0:
-    #     gh_error("Failed to get image list for cleanup!")
-    #     return False
-
-    # image_clean = all(
-    #     map(
-    #         lambda x: subprocess.run(
-    #             ["docker", "rmi", "-f", x], stdout=stdout
-    #         ).returncode
-    #         == 0,
-    #         image_list.stdout.decode().splitlines(),
-    #     )
-    # )
-
-    # if not image_clean:
-    #     gh_error("Failed to clean image cache!")
-    #     return False
-
     image_clean = subprocess.run(["docker", "image", "prune", "-f"])
 
     if image_clean.returncode != 0:
@@ -280,11 +259,8 @@ def build_folder(folder: str, metadata: Dict[str, Any], tags: List[str]) -> bool
 def scan_for_vulnerability(folder: str, tags: List[str]) -> bool:
     print(">>>> Scan Image for Vulnerabilities <<<<")
 
-    subprocess.run(["docker", "image", "ls"], stdout=stdout)
-    print("running `docker scan " + tags[0] + " --accept-license`")
-
     scan_output = subprocess.run(
-        ["docker", "scan", f"'{tags[0]}'", "--accept-license", "--file", "Dockerfile"],
+        ["docker", "scan", "--accept-license", "-f", "Dockerfile", f"{tags[0]}"],
         stdout=stdout,
         cwd=folder,
     )
