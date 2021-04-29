@@ -1,4 +1,4 @@
-name: Lint, Build, and Push Container Images
+name: Push - Lint, Build, and Push Container Images
 
 on:
   push:
