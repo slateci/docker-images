@@ -42,17 +42,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-      - name: Install Docker scan plugin
-        run: |
-          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-          sudo apt update
-          sudo apt install docker-scan-plugin -y
-
-      # TODO: change to SLATE robot acct instead of Emerson's personal acct
-      - name: Authenticate with Synk
-        run: docker scan --login --token '${{ secrets.SYNK_TOKEN }}' --accept-license
-
       # - name: Install script dependencies
       #   run: pip3 install pyyaml
 
