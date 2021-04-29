@@ -260,6 +260,7 @@ def build_folder(folder: str, metadata: Dict[str, Any], tags: List[str]) -> bool
 def scan_for_vulnerability(folder: str, tags: List[str]) -> bool:
     print(">>>> Scan Image for Vulnerabilities <<<<")
 
+    # TODO: use Dockle and Trivy here instead
     scan_output = subprocess.run(
         ["docker", "scan", f"{tags[0]}"],
         stdout=stdout,
@@ -310,7 +311,7 @@ def pipeline(args: argparse.Namespace) -> int:
             )
             and lint_folder(folder)
             and build_folder(folder, *mt_tuple)
-            and scan_for_vulnerability(folder, mt_tuple[1])
+            # and scan_for_vulnerability(folder, mt_tuple[1])
             and (True if args.no_push else push_folder(folder, mt_tuple[1]))
         ):
             failed.append(folder)
