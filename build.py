@@ -233,6 +233,7 @@ def build_folder(folder: str, metadata: Dict[str, Any], tags: List[str]) -> bool
             "--file",
             "Dockerfile",
             f"--cache-from=type=registry,ref={IMAGE_URLS[0]}/{metadata['name']}:latest",
+            f"--cache-from=type=registry,ref={tags[1]}",
             "--output=type=docker",
             # This appears to be faster and pushes all tags at once but doesn't
             # allow us to scan for vulnerabilities before pushing.
