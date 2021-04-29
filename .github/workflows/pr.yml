@@ -1,9 +1,8 @@
 name: Lint, Build, and Push Container Images
 
 on:
-  push:
-    branches:
-      - stable
+  pull_request:
+    types: ['opened', 'edited', 'reopened', 'synchronize']
 
 jobs:
   main:
@@ -13,10 +12,10 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v2
 
-      - name: Fetch commit history until ${{ github.event.before }}
+      - name: Fetch commit history until ${{ github.event.pull_request.base.sha }}
         run: |
           i=1
-          until git show ${{ github.event.before }} &> /dev/null
+          until git show ${{ github.event.pull_request.base.sha }} &> /dev/null
           do
             if [[ $i -gt 100 ]]; then
               break
@@ -58,5 +57,5 @@ jobs:
       # - name: Install script dependencies
       #   run: pip3 install pyyaml
 
-      - name: Run build.py
-        run: ./build.py pipeline ${{ github.event.before }} ${{ github.event.after }}
+      - name: Run build.py on branch ${{ github.event.pull_request.head.ref }}
+        run: ./build.py pipeline ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} --ignore-version-check --branch '${{ github.event.pull_request.head.ref }}'
