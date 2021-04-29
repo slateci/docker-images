@@ -261,7 +261,7 @@ def scan_for_vulnerability(folder: str, tags: List[str]) -> bool:
     print(">>>> Scan Image for Vulnerabilities <<<<")
 
     scan_output = subprocess.run(
-        ["docker", "scan", "--accept-license", f"{tags[0]}"],
+        ["docker", "scan", f"{tags[0]}"],
         stdout=stdout,
         cwd=folder,
     )
