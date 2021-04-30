@@ -113,6 +113,7 @@ def get_metadata(
         gh_error("'version' field is prohibited to be 'latest'.")
         return None
 
+    # WARNING: Order of tags matters.
     tags = [f"{metadata['name']}:{branch}"]
     for url in IMAGE_URLS:
         if not branch or branch == "stable":
@@ -234,7 +235,7 @@ def build_folder(folder: str, metadata: Dict[str, Any], tags: List[str]) -> bool
             "Dockerfile",
             f"--cache-from=type=registry,ref={IMAGE_URLS[0]}/{metadata['name']}:latest",
             f"--cache-from=type=registry,ref={tags[1]}",
-            "--output=type=docker",
+            "--output=type=image,push=false",
             # This appears to be faster and pushes all tags at once but doesn't
             # allow us to scan for vulnerabilities before pushing.
             # "--output=type=registry",
