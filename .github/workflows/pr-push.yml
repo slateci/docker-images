@@ -44,7 +44,9 @@ jobs:
             var fs = require('fs');
             fs.writeFileSync('${{ github.workspace }}/pr.zip', Buffer.from(download.data));
 
-      - run: unzip pr.zip
+      - run: |
+          mkdir -p images
+          unzip pr.zip -d images
 
       - name: Push images
         id: push-tags
@@ -54,11 +56,7 @@ jobs:
           tags=""
           delim=""
 
-          for tb in *; do
-            if [[ "$tb" == 'NR' ]]; then
-              continue
-            fi
-
+          for tb in */images; do
             tags+="$delim"
             delim=" "
             tags+=$(docker load -i "$tb" | sed 's/Loaded image: //' | tr '\n' ' ')
