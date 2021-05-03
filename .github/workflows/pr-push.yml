@@ -57,6 +57,10 @@ jobs:
           delim=""
 
           for tb in images/*; do
+            if [[ "$tb" == "images/NR" ]]; then
+              continue
+            fi
+
             tags+="$delim"
             delim=" "
             tags+=$(docker load -i "$tb" | sed 's/Loaded image: //' | tr '\n' ' ')
