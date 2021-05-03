@@ -50,6 +50,7 @@ jobs:
         id: push-tags
         shell: bash
         run: |
+          set -x
           tags=""
           delim=""
 
