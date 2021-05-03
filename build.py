@@ -245,7 +245,7 @@ def build_folder(
             ".",
             "--file",
             "Dockerfile",
-            "--output=type=image,push=false",
+            "--output=type=docker",
             "--cache-to=type=inline",
         ]
         + cache_from_flags
@@ -287,7 +287,6 @@ def push_folder(folder: str, tags: List[str]) -> bool:
     print(">>>> Push Image <<<<")
 
     for t in tags:
-        print("running docker push " + t)
         push_output = subprocess.run(["docker", "push", t], stdout=stdout, cwd=folder)
 
         if push_output.returncode != 0:
