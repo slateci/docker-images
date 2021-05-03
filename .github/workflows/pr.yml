@@ -1,12 +1,15 @@
-name: PR - Lint, Build, and Push Container Images
+name: PR - Lint, Build, and Save Container Images
 
 on:
   pull_request:
-    types: ['opened', 'edited', 'reopened', 'synchronize']
+    types: ['opened', 'edited', 'reopened', 'synchronize', 'labeled', 'unlocked']
 
 jobs:
   main:
     runs-on: ubuntu-latest
+    # Only run if we just labeled this PR with 'ok-to-test' or some update operation
+    # occured and the PR has the label 'ok-to-test'.
+    if: ${{ ( github.event.action == 'labeled' && github.event.label.name == 'ok-to-test' ) || ( github.event.action != 'labeled' && contains( github.event.pull_request.labels.*.name, 'ok-to-test' ) ) }}
 
     steps:
       - name: Checkout repo
@@ -25,12 +28,6 @@ jobs:
             git fetch --depth=$i
           done
 
-      - name: Authenticate with Github container registry
-        run: echo '${{ secrets.GITHUB_TOKEN }}' | docker login https://ghcr.io -u $GITHUB_ACTOR --password-stdin
-
-      - name: Authenticate with OSG Hub
-        run: echo '${{ secrets.OSG_HUB_ACCESS_TOKEN }}' | docker login https://hub.opensciencegrid.org -u '${{ secrets.OSG_HUB_USERNAME }}' --password-stdin
-
       - name: Install hadolint
         run: |
           mkdir -p $GITHUB_WORKSPACE/bin
@@ -44,5 +41,16 @@ jobs:
       # - name: Install script dependencies
       #   run: pip3 install pyyaml
 
-      - name: Run build.py on branch ${{ github.event.pull_request.head.ref }}
-        run: ./build.py pipeline ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} --ignore-version-check --branch '${{ github.event.pull_request.head.ref }}'
+      - name: Run build.py
+        run: ./build.py pipeline ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} --save-images-to "image_tarballs_" --branch '${{ github.event.pull_request.head.ref }}'
+
+      - name: Save PR Number
+        run: |
+          echo ${{ github.event.number }} > ./image_tarballs_/NR
+
+      - name: Save image artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: pr
+          path: image_tarballs_
+          retention-days: 1

@@ -15,9 +15,9 @@ import argparse
 import datetime
 import subprocess
 from functools import partial
-from os import path
+from os import makedirs, path
 from sys import stdout
-from typing import Any, Dict, List, Optional, Set, Tuple, cast
+from typing import Any, Dict, List, NamedTuple, Optional, Set, Tuple, cast
 
 import yaml
 
@@ -32,6 +32,18 @@ LABEL_SCHEMA_FIELDS = ["name", "description", "maintainer", "usage", "url", "ver
 SLATE_FIELDS = ["maintainer"]
 
 IMAGE_URLS = ["ghcr.io/slateci", "hub.opensciencegrid.org/slate"]
+
+BRANCH_IMAGE_URLS = "ghcr.io/slateci"
+
+MAIN_BRANCH = "stable"
+
+
+class Tags(NamedTuple):
+    local: str
+    latest: List[str]
+    version: List[str]
+    branch: List[str]
+
 
 # Force print to flush each time it's called.
 print = partial(print, flush=True)
@@ -81,9 +93,7 @@ def check_required_files(folder: str) -> bool:
     return True
 
 
-def get_metadata(
-    folder: str, branch: Optional[str] = None
-) -> Optional[Tuple[Dict[str, Any], List[str]]]:
+def get_metadata(folder: str, branch: str) -> Optional[Tuple[Dict[str, Any], Tags]]:
     try:
         with open(f"{folder}/metadata.yml") as f:
             metadata = yaml.load(f.read(), Loader=Loader)
@@ -113,24 +123,21 @@ def get_metadata(
         gh_error("'version' field is prohibited to be 'latest'.")
         return None
 
-    # WARNING: Order of tags matters.
-    tags = [f"{metadata['name']}:{branch}"]
-    for url in IMAGE_URLS:
-        if not branch or branch == "stable":
-            tags.append(f"{url}/{metadata['name']}:{metadata['version']}")
-            tags.append(f"{url}/{metadata['name']}:latest")
-        else:
-            tags.append(f"{url}/{metadata['name']}:{branch}")
+    tags = Tags(
+        local=f"{metadata['name']}:{branch}",
+        latest=[f"{url}/{metadata['name']}:latest" for url in IMAGE_URLS],
+        version=[
+            f"{url}/{metadata['name']}:{metadata['version']}" for url in IMAGE_URLS
+        ],
+        branch=[f"{url}/{metadata['name']}:{branch}" for url in BRANCH_IMAGE_URLS],
+    )
 
     return metadata, tags
 
 
-### Check if Version Exists ###
-def check_version_exists(tags: List[str]) -> bool:
-    for t in tags[1:]:
-        if t.endswith(":latest"):
-            continue
-
+### Check if Tags Exists ###
+def check_tags_exists(tags: List[str]) -> bool:
+    for t in tags:
         check = subprocess.run(
             ["docker", "manifest", "inspect", t], capture_output=True
         )
@@ -175,7 +182,9 @@ def lint_folder(folder: str) -> bool:
 
 
 ### Build ###
-def build_folder(folder: str, metadata: Dict[str, Any], tags: List[str]) -> bool:
+def build_folder(
+    folder: str, metadata: Dict[str, Any], tags: List[str], cache_from: List[str]
+) -> bool:
     print(">>>> Build Image <<<<")
 
     labels = {}
@@ -201,6 +210,8 @@ def build_folder(folder: str, metadata: Dict[str, Any], tags: List[str]) -> bool
         .strip()
     )
 
+    cache_from_flags = [f"--cache-from=type=registry,ref={t}" for t in cache_from]
+
     labels_flags = []
     for k, v in labels.items():
         labels_flags += ["--label", f"{k}={v}"]
@@ -209,7 +220,8 @@ def build_folder(folder: str, metadata: Dict[str, Any], tags: List[str]) -> bool
     for t in tags:
         tag_flags += ["--tag", t]
 
-    # Clean Docker cache
+    # Clean Docker image cache. This is necessary as we could potentially build
+    # multiple images in a single go and exhaust storage space on the runner.
     cache_clean = subprocess.run(
         ["docker", "buildx", "prune", "-a", "-f"], stdout=stdout
     )
@@ -233,16 +245,10 @@ def build_folder(folder: str, metadata: Dict[str, Any], tags: List[str]) -> bool
             ".",
             "--file",
             "Dockerfile",
-            f"--cache-from=type=registry,ref={IMAGE_URLS[0]}/{metadata['name']}:latest",
-            f"--cache-from=type=registry,ref={tags[1]}",
             "--output=type=image,push=false",
-            # This appears to be faster and pushes all tags at once but doesn't
-            # allow us to scan for vulnerabilities before pushing.
-            # "--output=type=registry",
-            # Add cache metadata to the image itself.
-            # Alternatively, "--cache-to=type=registry" might work.
             "--cache-to=type=inline",
         ]
+        + cache_from_flags
         + labels_flags
         + tag_flags,
         stdout=stdout,
@@ -258,12 +264,12 @@ def build_folder(folder: str, metadata: Dict[str, Any], tags: List[str]) -> bool
 
 
 ### Scan for Vulnerabilities ###
-def scan_for_vulnerability(folder: str, tags: List[str]) -> bool:
+def scan_for_vulnerability(folder: str, tag: str) -> bool:
     print(">>>> Scan Image for Vulnerabilities <<<<")
 
     # TODO: use Dockle and Trivy here instead
     scan_output = subprocess.run(
-        ["docker", "scan", f"{tags[0]}"],
+        ["docker", "scan", f"{tag}"],
         stdout=stdout,
         cwd=folder,
     )
@@ -280,7 +286,7 @@ def scan_for_vulnerability(folder: str, tags: List[str]) -> bool:
 def push_folder(folder: str, tags: List[str]) -> bool:
     print(">>>> Push Image <<<<")
 
-    for t in tags[1:]:
+    for t in tags:
         push_output = subprocess.run(["docker", "push", t], stdout=stdout, cwd=folder)
 
         if push_output.returncode != 0:
@@ -288,6 +294,25 @@ def push_folder(folder: str, tags: List[str]) -> bool:
             return False
 
     print(">> Successfully pushed! <<")
+    return True
+
+
+### Save Image ###
+def save_image(tar_name: str, directory: str, tags: List[str]) -> bool:
+    print(">>>> Save Image <<<<")
+
+    if not path.isdir(directory):
+        makedirs(directory)
+
+    save_img = subprocess.run(
+        ["docker", "save", "-o", f"{directory}/{tar_name}.tar"] + tags, stdout=stdout
+    )
+
+    if save_img.returncode != 0:
+        gh_error(f"Failed to save images in {directory}/{tar_name}.tar!")
+        return False
+
+    print(">> Successfully Saved Image! <<")
     return True
 
 
@@ -302,18 +327,32 @@ def pipeline(args: argparse.Namespace) -> int:
     for folder in changed_folders:
         print(f"::group::{folder}")
 
+        push_tags = (
+            lambda tags: tags.branch
+            if args.branch != MAIN_BRANCH
+            else tags.version + tags.latest
+        )
+
         if not (
             check_required_files(folder)
-            and (mt_tuple := get_metadata(folder, args.branch))
-            and not (
-                False
-                if args.ignore_version_check
-                else check_version_exists(mt_tuple[1])
-            )
+            and (mt := get_metadata(folder, args.branch))
+            and not (check_tags_exists(mt[1].version))
             and lint_folder(folder)
-            and build_folder(folder, *mt_tuple)
-            # and scan_for_vulnerability(folder, mt_tuple[1])
-            and (True if args.no_push else push_folder(folder, mt_tuple[1]))
+            and build_folder(
+                folder,
+                mt[0],
+                [mt[1].local] + push_tags(mt[1]),
+                mt[1].latest + (mt[1].branch if args.branch != MAIN_BRANCH else []),
+            )
+            # and scan_for_vulnerability(folder, mt[1].local)
+            and (
+                save_image(mt[0]["name"], args.save_images_to, push_tags(mt[1]))
+                if args.save_images_to
+                else push_folder(
+                    folder,
+                    push_tags(mt[1]),
+                )
+            )
         ):
             failed.append(folder)
 
@@ -335,7 +374,8 @@ def lint(args: argparse.Namespace, folders: Set[str]) -> int:
 
         if not (
             check_required_files(folder)
-            and get_metadata(folder)
+            # branch name doesn't matter here as we don't use the tags
+            and get_metadata(folder, MAIN_BRANCH)
             and lint_folder(folder)
         ):
             failed.append(folder)
@@ -366,9 +406,14 @@ def force_build(args: argparse.Namespace, folders: Set[str]) -> int:
 
         if not (
             check_required_files(folder)
-            and (mt_tuple := get_metadata(folder, args.branch))
-            and build_folder(folder, *mt_tuple)
-            and push_folder(folder, mt_tuple[1])
+            and (mt := get_metadata(folder, MAIN_BRANCH))
+            and build_folder(
+                folder,
+                mt[0],
+                mt[1].latest + mt[1].version,
+                mt[1].latest,
+            )
+            and push_folder(folder, mt[1].latest + mt[1].version)
         ):
             failed.append(folder)
 
@@ -414,17 +459,16 @@ pipeline_p.add_argument(
     help="commit SHA to which to search for changes (inclusive)",
 )
 pipeline_p.add_argument(
-    "--no-push", action="store_true", help="build the image but do not push it"
-)
-pipeline_p.add_argument(
-    "--ignore-version-check",
-    action="store_true",
-    help="push the image even if this version exists",
+    "--save-images-to",
+    type=str,
+    help="save the image to FOLDER instead of pushing them",
+    metavar="FOLDER",
 )
 pipeline_p.add_argument(
     "--branch",
     type=str,
     help="branch name to use in tag instead of 'latest' and version",
+    default=MAIN_BRANCH,
 )
 pipeline_p.set_defaults(func=pipeline)
 
@@ -447,11 +491,6 @@ force_build_all_p = subparsers.add_parser(
     description="Force build and push all folders (ignoring lint, version existence, and vulnerability errors).",
     help="Force build and push all folders (ignoring lint, version existence, and vulnerability errors)",
 )
-force_build_all_p.add_argument(
-    "--branch",
-    type=str,
-    help="branch name to use in tag instead of 'latest' and version",
-)
 force_build_all_p.set_defaults(func=force_build_all)
 
 force_build_some_p = subparsers.add_parser(
@@ -462,11 +501,6 @@ force_build_some_p = subparsers.add_parser(
 force_build_some_p.add_argument(
     "folders",
     help="comma separated list of folders to force build",
-)
-force_build_some_p.add_argument(
-    "--branch",
-    type=str,
-    help="branch name to use in tag instead of 'latest' and version",
 )
 force_build_some_p.set_defaults(func=force_build_some)
 
