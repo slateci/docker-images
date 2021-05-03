@@ -56,7 +56,7 @@ jobs:
           tags=""
           delim=""
 
-          for tb in */images; do
+          for tb in images/*; do
             tags+="$delim"
             delim=" "
             tags+=$(docker load -i "$tb" | sed 's/Loaded image: //' | tr '\n' ' ')
