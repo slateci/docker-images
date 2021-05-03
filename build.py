@@ -33,7 +33,7 @@ SLATE_FIELDS = ["maintainer"]
 
 IMAGE_URLS = ["ghcr.io/slateci", "hub.opensciencegrid.org/slate"]
 
-BRANCH_IMAGE_URLS = "ghcr.io/slateci"
+BRANCH_IMAGE_URLS = ["ghcr.io/slateci"]
 
 MAIN_BRANCH = "stable"
 
