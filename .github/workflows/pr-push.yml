@@ -61,7 +61,7 @@ jobs:
 
             tags+="$delim"
             delim=" "
-            tags+=$(docker load -i "$img" | sed 's/Loaded image: //' | tr '\n' ' ')
+            tags+=$(docker load -i "$tb" | sed 's/Loaded image: //' | tr '\n' ' ')
           done
 
           echo "$tags" | xargs docker push || exit 1
