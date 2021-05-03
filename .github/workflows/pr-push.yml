@@ -81,5 +81,5 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: issue_number,
-              body: 'PR successfully built!\nThe following tags were pushed: ${{ steps.push-tags.outputs.TAGS}}'
+              body: '*This pull request has been successfully built!!*\n\nThe built images have been pushed to:\n${{ steps.push-tags.outputs.TAGS}}'
             });
