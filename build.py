@@ -32,12 +32,6 @@ BUILD_FOLDERS_FILE = "build_folders.txt"
 LABEL_SCHEMA_FIELDS = ["name", "description", "maintainer", "usage", "url", "version"]
 SLATE_FIELDS = ["maintainer"]
 
-IMAGE_URLS = ["ghcr.io/slateci", "hub.opensciencegrid.org/slate"]
-
-BRANCH_IMAGE_URLS = ["ghcr.io/slateci"]
-
-MAIN_BRANCH = "stable"
-
 
 class Tags(NamedTuple):
     local: str
