@@ -30,7 +30,7 @@ jobs:
       # - name: Install script dependencies
       #   run: pip3 install pyyaml
 
-      - name: Run build.py force-build-all
+      - name: Run build.py force-build --all
         run: |
           ./build.py force-build --all \
           --cache-from 'ghcr.io/slateci/{name}:latest' \
@@ -39,7 +39,7 @@ jobs:
 
       - name: Run build.py force-build
         run: |
-          ./build.py force-build ${{ github.events.inputs.folders }} \
+          ./build.py force-build ${{ github.event.inputs.folders }} \
           --cache-from 'ghcr.io/slateci/{name}:latest' \
           --push-tags 'ghcr.io/slateci/{name}:{version}' 'hub.opensciencegrid.org/slate/{name}:{version}' 'ghcr.io/slateci/{name}:latest' 'hub.opensciencegrid.org/slate/{name}:latest'
         if: ${{ github.event.inputs.folders != 'ALL' }}
