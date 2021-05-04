@@ -46,7 +46,11 @@ jobs:
       #   run: pip3 install pyyaml
 
       - name: Run build.py
-        run: ./build.py pipeline ${{ github.event.before }} ${{ github.event.after }}
+        run: |
+          ./build.py pipeline ${{ github.event.before }} ${{ github.event.after }} \
+          --check-existence 'ghcr.io/slateci/{name}:{version}' 'hub.opensciencegrid.org/slate/{name}:{version}' \
+          --cache-from 'ghcr.io/slateci/{name}:latest' \
+          --push-tags 'ghcr.io/slateci/{name}:{version}' 'hub.opensciencegrid.org/slate/{name}:{version}' 'ghcr.io/slateci/{name}:latest' 'hub.opensciencegrid.org/slate/{name}:latest'
 
       - name: Notify Slack of Failure
         if: failure()

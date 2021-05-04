@@ -23,7 +23,7 @@ jobs:
           chmod +x $GITHUB_WORKSPACE/bin/hadolint
 
       - name: Run build.py lint-all
-        run: ./build.py lint-all
+        run: ./build.py lint --all
         if: ${{ github.event.inputs.folders == 'ALL' }}
 
       - name: Run build.py lint
