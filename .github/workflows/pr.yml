@@ -46,7 +46,7 @@ jobs:
           ./build.py pipeline ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} \
           --save-images-to '_save/images.tar' \
           --check-existence 'ghcr.io/slateci/{name}:{version}' 'hub.opensciencegrid.org/slate/{name}:{version}' \
-          --cache-from 'ghcr.io/slateci/{name}:latest' 'ghcr.io/slateci/{name}:${{ github.event.pull_request.head.ref }}'\
+          --cache-from 'ghcr.io/slateci/{name}:latest' 'ghcr.io/slateci/{name}:${{ github.event.pull_request.head.ref }}' \
           --save-tags 'ghcr.io/slateci/{name}:${{ github.event.pull_request.head.ref }}'
 
       - name: Save PR Number
