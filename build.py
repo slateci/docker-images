@@ -15,8 +15,9 @@ import argparse
 import datetime
 import subprocess
 from functools import partial
-from os import makedirs, path
-from sys import stdout
+from os import path
+from pathlib import Path
+from sys import stderr, stdout
 from typing import Any, Dict, List, NamedTuple, Optional, Set, Tuple, cast
 
 import yaml
@@ -40,9 +41,11 @@ MAIN_BRANCH = "stable"
 
 class Tags(NamedTuple):
     local: str
-    latest: List[str]
-    version: List[str]
-    branch: List[str]
+    existence: List[str]
+    cache: List[str]
+    build: List[str]
+    push: List[str]
+    save: List[str]
 
 
 # Force print to flush each time it's called.
@@ -81,6 +84,67 @@ def get_changed_folders(from_commit: str, to_commit: str) -> Set[str]:
     )
 
 
+def parse_folders_args(args: argparse.Namespace) -> Set[str]:
+    build_folders = get_build_folders()
+
+    if args.all:
+        if args.folders:
+            print("Ignoring specified folders due to --all flag...", file=stderr)
+
+        return build_folders
+    else:
+        folders = set()
+
+        if not args.folders:
+            print("No folders specified, doing nothing...", file=stderr)
+
+        for f in args.folders:
+            for ff in f.split(","):
+                if ff not in build_folders:
+                    print(
+                        f"Skipping {ff} as it is not in {BUILD_FOLDERS_FILE}...",
+                        file=stderr,
+                    )
+                else:
+                    folders.add(ff)
+
+        return folders
+
+
+def get_tags(
+    metadata: Dict[str, Any],
+    existence_t: List[str],
+    cache_t: List[str],
+    push_t: List[str],
+    save_t: List[str],
+) -> Tags:
+    local_t = metadata["name"] + ":" + metadata["version"]
+    build_t = set(push_t) | set(save_t) | {local_t}
+
+    return Tags(
+        local=local_t,
+        existence=[
+            t.format(name=metadata["name"], version=metadata["version"])
+            for t in existence_t
+        ],
+        cache=[
+            t.format(name=metadata["name"], version=metadata["version"])
+            for t in cache_t
+        ],
+        build=[
+            t.format(name=metadata["name"], version=metadata["version"])
+            for t in build_t
+        ],
+        push=[
+            t.format(name=metadata["name"], version=metadata["version"]) for t in push_t
+        ],
+        save=[
+            t.format(name=metadata["name"], version=metadata["version"]) for t in save_t
+        ],
+    )
+
+
+### Prebuild Checks ###
 def check_required_files(folder: str) -> bool:
     if not path.isfile(f"{folder}/Dockerfile"):
         gh_error("Dockerfile not found!")
@@ -93,7 +157,7 @@ def check_required_files(folder: str) -> bool:
     return True
 
 
-def get_metadata(folder: str, branch: str) -> Optional[Tuple[Dict[str, Any], Tags]]:
+def get_metadata(folder: str) -> Optional[Dict[str, Any]]:
     try:
         with open(f"{folder}/metadata.yml") as f:
             metadata = yaml.load(f.read(), Loader=Loader)
@@ -123,19 +187,9 @@ def get_metadata(folder: str, branch: str) -> Optional[Tuple[Dict[str, Any], Tag
         gh_error("'version' field is prohibited to be 'latest'.")
         return None
 
-    tags = Tags(
-        local=f"{metadata['name']}:{branch}",
-        latest=[f"{url}/{metadata['name']}:latest" for url in IMAGE_URLS],
-        version=[
-            f"{url}/{metadata['name']}:{metadata['version']}" for url in IMAGE_URLS
-        ],
-        branch=[f"{url}/{metadata['name']}:{branch}" for url in BRANCH_IMAGE_URLS],
-    )
-
-    return metadata, tags
+    return metadata
 
 
-### Check if Tags Exists ###
 def check_tags_exists(tags: List[str]) -> bool:
     for t in tags:
         check = subprocess.run(
@@ -143,9 +197,9 @@ def check_tags_exists(tags: List[str]) -> bool:
         )
 
         if check.returncode == 0:
-            gh_error(f"{t} already exists, stopping...")
+            gh_error(f"{t} exists, stopping...")
             print(
-                "Overriding existing versions of a container is _dangerous_ "
+                "Overriding existing tags of a container is _dangerous_ "
                 "and should be avoided if possible. We recommend incrementing "
                 "the version number in metadata.yml instead or ignoring this "
                 "error if these commits do not substantially change the container "
@@ -283,11 +337,11 @@ def scan_for_vulnerability(folder: str, tag: str) -> bool:
 
 
 ### Push ###
-def push_folder(folder: str, tags: List[str]) -> bool:
+def push_tags(tags: List[str]) -> bool:
     print(">>>> Push Image <<<<")
 
     for t in tags:
-        push_output = subprocess.run(["docker", "push", t], stdout=stdout, cwd=folder)
+        push_output = subprocess.run(["docker", "push", t], stdout=stdout)
 
         if push_output.returncode != 0:
             gh_error(f"Failed to push {t}!")
@@ -298,18 +352,22 @@ def push_folder(folder: str, tags: List[str]) -> bool:
 
 
 ### Save Image ###
-def save_image(tar_name: str, directory: str, tags: List[str]) -> bool:
+def save_tags(save_to: str, tags: List[str]) -> bool:
     print(">>>> Save Image <<<<")
 
-    if not path.isdir(directory):
-        makedirs(directory)
+    loc = Path(save_to)
 
-    save_img = subprocess.run(
-        ["docker", "save", "-o", f"{directory}/{tar_name}.tar"] + tags, stdout=stdout
-    )
+    if loc.suffix != ".tar":
+        gh_error("Save location must end in .tar!")
+        return False
+
+    if not loc.parent.exists():
+        loc.parent.mkdir()
+
+    save_img = subprocess.run(["docker", "save", "-o", str(loc)] + tags, stdout=stdout)
 
     if save_img.returncode != 0:
-        gh_error(f"Failed to save images in {directory}/{tar_name}.tar!")
+        gh_error(f"Failed to save images in {loc}!")
         return False
 
     print(">> Successfully Saved Image! <<")
@@ -318,6 +376,8 @@ def save_image(tar_name: str, directory: str, tags: List[str]) -> bool:
 
 ### Main Functions ###
 def pipeline(args: argparse.Namespace) -> int:
+    print("Calling 'build.py pipeline' with args: " + str(args))
+
     changed_folders = get_changed_folders(args.from_commit, args.to_commit)
 
     print(f"Detected changes in folders: {', '.join(changed_folders)}")
@@ -327,32 +387,30 @@ def pipeline(args: argparse.Namespace) -> int:
     for folder in changed_folders:
         print(f"::group::{folder}")
 
-        push_tags = (
-            lambda tags: tags.branch
-            if args.branch != MAIN_BRANCH
-            else tags.version + tags.latest
+        if not (check_required_files(folder) and (metadata := get_metadata(folder))):
+            failed.append(folder)
+            continue
+
+        tags = get_tags(
+            metadata,
+            args.check_existence_of,
+            args.cache_from,
+            args.push_tags,
+            args.save_tags,
         )
 
         if not (
-            check_required_files(folder)
-            and (mt := get_metadata(folder, args.branch))
-            and not (check_tags_exists(mt[1].version))
+            not (check_tags_exists(tags.existence))
             and lint_folder(folder)
             and build_folder(
                 folder,
-                mt[0],
-                [mt[1].local] + push_tags(mt[1]),
-                mt[1].latest + (mt[1].branch if args.branch != MAIN_BRANCH else []),
+                metadata,
+                tags.build,
+                tags.cache,
             )
-            # and scan_for_vulnerability(folder, mt[1].local)
-            and (
-                save_image(mt[0]["name"], args.save_images_to, push_tags(mt[1]))
-                if args.save_images_to
-                else push_folder(
-                    folder,
-                    push_tags(mt[1]),
-                )
-            )
+            # and scan_for_vulnerability(folder, tags.local)
+            and (save_tags(args.save_images_to, tags.save) if args.save_tags else True)
+            and (push_tags(tags.push) if args.push_tags else True)
         ):
             failed.append(folder)
 
@@ -366,7 +424,10 @@ def pipeline(args: argparse.Namespace) -> int:
     return 0
 
 
-def lint(args: argparse.Namespace, folders: Set[str]) -> int:
+def lint(args: argparse.Namespace) -> int:
+    print("Calling 'build.py lint' with args: " + str(args))
+
+    folders = parse_folders_args(args)
     failed = []
 
     for folder in folders:
@@ -374,8 +435,8 @@ def lint(args: argparse.Namespace, folders: Set[str]) -> int:
 
         if not (
             check_required_files(folder)
-            # branch name doesn't matter here as we don't use the tags
-            and get_metadata(folder, MAIN_BRANCH)
+            # check that the metadata file is valid
+            and get_metadata(folder)
             and lint_folder(folder)
         ):
             failed.append(folder)
@@ -390,30 +451,31 @@ def lint(args: argparse.Namespace, folders: Set[str]) -> int:
     return 0
 
 
-def lint_all(args: argparse.Namespace) -> int:
-    return lint(args, get_build_folders())
+def force_build(args: argparse.Namespace) -> int:
+    print("Calling 'build.py force-build' with args: " + str(args))
 
-
-def lint_some(args: argparse.Namespace):
-    return lint(args, set(args.folders.split(",")) & get_build_folders())
-
-
-def force_build(args: argparse.Namespace, folders: Set[str]) -> int:
+    folders = parse_folders_args(args)
     failed = []
 
     for folder in folders:
         print(f"::group::{folder}")
 
+        if not (check_required_files(folder) and (metadata := get_metadata(folder))):
+            failed.append(folder)
+            continue
+
+        tags = get_tags(
+            metadata,
+            [],
+            args.cache_from,
+            args.push_tags,
+            args.save_tags,
+        )
+
         if not (
-            check_required_files(folder)
-            and (mt := get_metadata(folder, MAIN_BRANCH))
-            and build_folder(
-                folder,
-                mt[0],
-                mt[1].latest + mt[1].version,
-                mt[1].latest,
-            )
-            and push_folder(folder, mt[1].latest + mt[1].version)
+            build_folder(folder, metadata, tags.build, tags.cache)
+            and (save_tags(args.save_images_to, tags.save) if args.save_tags else True)
+            and (push_tags(tags.push) if args.push_tags else True)
         ):
             failed.append(folder)
 
@@ -427,14 +489,6 @@ def force_build(args: argparse.Namespace, folders: Set[str]) -> int:
     return 0
 
 
-def force_build_all(args: argparse.Namespace):
-    return force_build(args, get_build_folders())
-
-
-def force_build_some(args: argparse.Namespace):
-    return force_build(args, set(args.folders.split(",")) & get_build_folders())
-
-
 parser = argparse.ArgumentParser(
     description="""
 Builds Docker images for slateci/docker-images.
@@ -445,8 +499,12 @@ subparsers = parser.add_subparsers()
 
 pipeline_p = subparsers.add_parser(
     "pipeline",
-    description="Lint / Build / Push folders that have changed between specified commits.",
-    help="Lint / Build / Push folders that have changed between specified commits",
+    description=(
+        "Lint, build, and push/save folders that have changed between specified commits. "
+        "Tag related flags can use {name} and {version} as placeholders. "
+        "Ex: --push-tags ghcr.io/slateci/{name}:{version}"
+    ),
+    help="Lint, build, and push/save folders that have changed between specified commits",
 )
 pipeline_p.add_argument(
     "from_commit",
@@ -459,50 +517,89 @@ pipeline_p.add_argument(
     help="commit SHA to which to search for changes (inclusive)",
 )
 pipeline_p.add_argument(
-    "--save-images-to",
-    type=str,
-    help="save the image to FOLDER instead of pushing them",
-    metavar="FOLDER",
+    "--check-existence-of",
+    help="fail if these image tags exists",
+    nargs="*",
+    metavar="TAG",
+    default=[],
 )
 pipeline_p.add_argument(
-    "--branch",
+    "--cache-from",
+    help="image tags to cache builds from",
+    nargs="*",
+    metavar="TAG",
+    default=[],
+)
+pipeline_p.add_argument(
+    "--push-tags", help="image tags to push", nargs="*", metavar="TAG", default=[]
+)
+pipeline_p.add_argument(
+    "--save-tags",
+    help="image tags to save locally",
+    nargs="*",
+    metavar="TAG",
+    default=[],
+)
+pipeline_p.add_argument(
+    "--save-images-to",
     type=str,
-    help="branch name to use in tag instead of 'latest' and version",
-    default=MAIN_BRANCH,
+    help="save tags (if any) to FILE (default: _save/images.tar)",
+    metavar="FILE",
+    default="_save/images.tar",
 )
 pipeline_p.set_defaults(func=pipeline)
 
-lint_all_p = subparsers.add_parser(
-    "lint-all", description="Lint all folders.", help="Lint all folders"
+lint_p = subparsers.add_parser(
+    "lint", description="Lint specified folders.", help="Lint folders"
 )
-lint_all_p.set_defaults(func=lint_all)
+lint_p.add_argument(
+    "folders", help="space and/or comma separated list of folders to lint", nargs="*"
+)
+lint_p.add_argument("--all", help="lint all folders", action="store_true")
+lint_p.set_defaults(func=lint)
 
-lint_some_p = subparsers.add_parser(
-    "lint", description="Lint specified folders.", help="Lint some folders"
-)
-lint_some_p.add_argument(
-    "folders",
-    help="comma separated list of folders to lint",
-)
-lint_some_p.set_defaults(func=lint_some)
-
-force_build_all_p = subparsers.add_parser(
-    "force-build-all",
-    description="Force build and push all folders (ignoring lint, version existence, and vulnerability errors).",
-    help="Force build and push all folders (ignoring lint, version existence, and vulnerability errors)",
-)
-force_build_all_p.set_defaults(func=force_build_all)
-
-force_build_some_p = subparsers.add_parser(
+force_build_p = subparsers.add_parser(
     "force-build",
-    description="Force build and push specified folders (ignoring lint, version existence, and vulnerability errors).",
-    help="Force build and push some folders (ignoring lint, version existence, and vulnerability errors)",
+    description=(
+        "Force build and push/save specified folders (ignoring lint, version existence, and vulnerability errors). "
+        "Tag related flags can use {name} and {version} as placeholders. "
+        "Ex: --push-tags ghcr.io/slateci/{name}:{version}"
+    ),
+    help="Force build and push/save specified folders (ignoring lint, version existence, and vulnerability errors)",
 )
-force_build_some_p.add_argument(
+force_build_p.add_argument(
     "folders",
-    help="comma separated list of folders to force build",
+    help="space and/or comma separated list of folders to force build",
+    nargs="*",
 )
-force_build_some_p.set_defaults(func=force_build_some)
+force_build_p.add_argument(
+    "--all", help="force build and push/save all folders", action="store_true"
+)
+force_build_p.add_argument(
+    "--cache-from",
+    help="image tags to cache builds from",
+    nargs="*",
+    metavar="TAG",
+    default=[],
+)
+force_build_p.add_argument(
+    "--push-tags", help="image tags to push", nargs="*", metavar="TAG", default=[]
+)
+force_build_p.add_argument(
+    "--save-tags",
+    help="image tags to save locally",
+    nargs="*",
+    metavar="TAG",
+    default=[],
+)
+force_build_p.add_argument(
+    "--save-images-to",
+    type=str,
+    help="save tags (if any) to FILE (default: _save/images.tar)",
+    metavar="FILE",
+    default="_save/images.tar",
+)
+force_build_p.set_defaults(func=force_build)
 
 if __name__ == "__main__":
     args = parser.parse_args()
