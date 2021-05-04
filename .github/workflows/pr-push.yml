@@ -9,11 +9,11 @@ on:
 jobs:
   upload:
     runs-on: ubuntu-latest
-    if: >
-      ${{ github.event.workflow_run.event == 'pull_request' &&
-      github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success' }}
 
     steps:
+      - run: echo '${{ toJSON(github.event) }}'
+
       - name: Authenticate with Github container registry
         run: echo '${{ secrets.GITHUB_TOKEN }}' | docker login https://ghcr.io -u $GITHUB_ACTOR --password-stdin
 
