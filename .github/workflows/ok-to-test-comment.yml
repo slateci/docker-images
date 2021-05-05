@@ -11,3 +11,11 @@ jobs:
 
     steps:
       - run: echo "${{ toJSON(github.event) }}"
+
+      - name: Check for ok-to-test command
+        uses: actions/github-script@v4
+        with:
+          result-encoding: string
+          script: |
+            console.log(context.event)
+            return context.event.comment.body.split("\n").map(line => line.match("^[/]ok-to-test\\s*$")).some(m => m != null)
