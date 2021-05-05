@@ -10,25 +10,30 @@ jobs:
     if: ${{ github.event.issue.pull_request }}
 
     steps:
-      - name: Check for ok-to-test command
-        id: content-check
+      - name: Apply ok-to-test label if conditions are met
         uses: actions/github-script@v4
         with:
           result-encoding: string
           script: |
-            return context.payload.comment.body.split("\n").map(line => line.match("^[/]ok-to-test\\s*$")).some(m => m != null)
+            // Check if comment has "/ok-to-test" on a line by itself.
+            if (!context.payload.comment.body.split("\n").map(line => line.match("^[/]ok-to-test\\s*$")).some(m => m != null)) {
+              return
+            }
 
-      # 0 - none, 1 - read, 2 - write, 3+ - admin
-      - name: Check commenter permissions
-        id: perms-check
-        uses: actions/github-script@v4
-        with:
-          result-encoding: string
-          script: |
+            // Get commenter's perm level.
             const {data: {permission: permLevel}} = await github.repos.getCollaboratorPermissionLevel({
               ...context.repo,
               username: context.actor
             });
+            console.log("Got perm level: " + permLevel)
 
-            console.log(permLevel)
-        if: ${{ steps.content-check.outputs.result == 'true' }}
+            // Commenter must have perm >= write.
+            if (!(permLevel === "write" || permLevel === "admin")) {
+              return
+            }
+
+            await github.issues.addLabels({
+              issue_number: context.issue.number,
+              ...context.repo,
+              labels: ['ok-to-test']
+            });
