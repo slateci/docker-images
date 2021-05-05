@@ -17,5 +17,5 @@ jobs:
         with:
           result-encoding: string
           script: |
-            console.log(context.event)
+            console.log(context.payload)
             return context.event.comment.body.split("\n").map(line => line.match("^[/]ok-to-test\\s*$")).some(m => m != null)
