@@ -11,7 +11,12 @@ jobs:
     # Only run if we just labeled this PR with 'ok-to-test' or some update operation
     # occured and the PR has the label 'ok-to-test'.
     # PR must also be open and unlocked for any builds to occur.
-  if: ${{ ((github.event.action == 'labeled' && github.event.label.name == 'ok-to-test') || (github.event.action != 'labeled' && contains(github.event.pull_request.labels.*.name, 'ok-to-test'))) && !github.event.pull_request.locked && github.event.pull_request.closed_at == null }}
+    if: |
+      ( (github.event.action == 'labeled' && github.event.label.name == 'ok-to-test' ) ||
+        ( github.event.action != 'labeled' && contains( github.event.pull_request.labels.*.name, 'ok-to-test' ) )
+      ) &&
+      !github.event.pull_request.locked &&
+      github.event.pull_request.closed_at == null
 
     steps:
       - name: Checkout repo
