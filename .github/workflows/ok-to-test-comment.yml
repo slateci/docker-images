@@ -10,4 +10,4 @@ jobs:
     if: ${{ github.event.issue.pull_request }}
 
     steps:
-      - run: echo "${{ toJSON(github.event.issue) }}"
+      - run: echo "${{ toJSON(github.event) }}"
