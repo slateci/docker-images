@@ -1,0 +1,13 @@
+name: PR Command - Add ok-to-test label
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  add_label:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.issue.pull_request }}
+
+    steps:
+      - run: echo "${{ github.event.issue.comment.body }}"
