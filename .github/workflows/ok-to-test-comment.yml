@@ -10,15 +10,12 @@ jobs:
     if: ${{ github.event.issue.pull_request }}
 
     steps:
-      - run: echo "${{ toJSON(github.event) }}"
-
       - name: Check for ok-to-test command
         id: content-check
         uses: actions/github-script@v4
         with:
           result-encoding: string
           script: |
-            console.log(context.payload.comment.body.split("\n").map(line => line.match("^[/]ok-to-test\\s*$")))
             return context.payload.comment.body.split("\n").map(line => line.match("^[/]ok-to-test\\s*$")).some(m => m != null)
 
       # 0 - none, 1 - read, 2 - write, 3+ - admin
@@ -28,9 +25,10 @@ jobs:
         with:
           result-encoding: string
           script: |
-            const response = octokit.repos.getCollaboratorPermissionLevel({
+            const response = github.repos.getCollaboratorPermissionLevel({
               context.repo.repo,
               username: context.actor
             });
 
             console.log(response)
+        if: ${{ steps.content-check.outputs.result == 'true' }}
