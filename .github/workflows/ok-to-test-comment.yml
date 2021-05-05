@@ -25,8 +25,8 @@ jobs:
         with:
           result-encoding: string
           script: |
-            const response = github.repos.getCollaboratorPermissionLevel({
-              context.repo.repo,
+            const response = await github.repos.getCollaboratorPermissionLevel({
+              ...context.repo,
               username: context.actor
             });
 
