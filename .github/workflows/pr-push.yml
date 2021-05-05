@@ -1,4 +1,4 @@
-name: Push PR Build
+name: PR - Push PR Images
 
 on:
   workflow_run:
