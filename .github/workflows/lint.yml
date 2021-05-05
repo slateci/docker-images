@@ -1,4 +1,4 @@
-name: Lint Dockerfiles
+name: Manual - Lint Dockerfiles
 
 on:
   workflow_dispatch:

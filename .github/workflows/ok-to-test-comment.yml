@@ -1,4 +1,4 @@
-name: PR Command - Add ok-to-test label
+name: PR Comment Command - Add ok-to-test label
 
 on:
   issue_comment:
