@@ -25,10 +25,10 @@ jobs:
         with:
           result-encoding: string
           script: |
-            const response = await github.repos.getCollaboratorPermissionLevel({
+            const {data: {permission: permLevel}} = await github.repos.getCollaboratorPermissionLevel({
               ...context.repo,
               username: context.actor
             });
 
-            console.log(response)
+            console.log(permLevel)
         if: ${{ steps.content-check.outputs.result == 'true' }}
