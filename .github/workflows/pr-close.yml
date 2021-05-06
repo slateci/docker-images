@@ -1,0 +1,62 @@
+name: PR - Delete Container Image
+
+on:
+  # Ensure no PR code is ever run, this is dangerous with pull_request_target!
+  # https://securitylab.github.com/research/github-actions-preventing-pwn-requests/
+  pull_request_target:
+    types: ['unlabeled', 'closed', 'locked']
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    if: |
+      ( (github.event.action == 'unlabeled' && github.event.label.name == 'ok-to-test') ||
+        (github.event.action != 'unlabeled' && contains(github.event.pull_request.labels.*.name, 'ok-to-test')))
+
+    steps:
+      - name: Checkout base
+        uses: actions/checkout@v2
+        with:
+          path: base
+
+      - name: Checkout PR
+        uses: actions/checkout@v2
+        with:
+          path: pr
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Fetch commit history until ${{ github.event.pull_request.base.sha }}
+        working-directory: ./pr
+        run: |
+          i=1
+          until git show ${{ github.event.pull_request.base.sha }} &> /dev/null
+          do
+            if [[ $i -gt 100 ]]; then
+              break
+            fi
+
+            i=$((i+5))
+            git fetch --depth=$i
+          done
+
+      - name: Get changed folders
+        id: folders
+        shell: bash
+        working-directory: ./pr
+        run: |
+          echo "::set-output name=folders::$(../base/build.py get-changed ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }})"
+
+      - name: Find and delete images associated with this PR
+        uses: actions/github-script@v4
+        with:
+          script: |
+            var image_ids = []
+            for (const folder_name of "${{ steps.folders.outputs.folders }}".split("\n")) {
+              github.paginate("GET /orgs/{org}/packages/{package_type}/{package_name}/versions", {
+                org: "slateci",
+                package_type: "container",
+                package_name: folder_name
+              }).then((img) => {
+                console.log(img);
+              });
+            }
