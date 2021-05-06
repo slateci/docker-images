@@ -24,7 +24,7 @@ jobs:
             // Get commenter's perm level.
             const {data: {permission: permLevel}} = await github.repos.getCollaboratorPermissionLevel({
               ...context.repo,
-              username: context.actor
+              username: context.payload.sender.login
             });
             console.log("Got perm level: " + permLevel)
 
