@@ -33,6 +33,7 @@ jobs:
         run: echo '${{ secrets.OSG_HUB_ACCESS_TOKEN }}' | docker login https://hub.opensciencegrid.org -u '${{ secrets.OSG_HUB_USERNAME }}' --password-stdin
 
       - name: Install dockle
+        shell: bash
         run: |
           VERSION=$(
            curl --silent "https://api.github.com/repos/goodwithtech/dockle/releases/latest" | \
