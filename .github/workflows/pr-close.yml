@@ -51,13 +51,30 @@ jobs:
         with:
           github-token: ${{ secrets.SLATECI_ROBOT_PAT }}
           script: |
-            var image_ids = []
             for (const folder_name of "${{ steps.folders.outputs.folders }}".split("\n")) {
-              github.paginate("GET /orgs/{org}/packages/{package_type}/{package_name}/versions", {
+              var image_ids = [];
+
+              const images = await github.paginate("GET /orgs/{org}/packages/{package_type}/{package_name}/versions", {
                 org: "slateci",
                 package_type: "container",
                 package_name: folder_name
-              }).then((img) => {
-                console.log(img);
               });
-            }
+
+              images.forEach((img) => {
+                const tag = "PR-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.ref }}";
+
+                if (img.metadata.container.tags.includes(tag)) {
+                  console.log("Deleting " + folder_name + ":" + tag);
+                  image_ids.push(img.id);
+                }
+              });
+
+              image_ids.forEach((img_id) => {
+                await github.request("DELETE /orgs/{org}/packages/{package_type}/{package_name}/versions/{package_version_id}", {
+                org: "slateci",
+                package_type: "container",
+                package_name: folder_name,
+                package_version_id: img_id
+                });
+              });
+}
