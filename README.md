@@ -7,7 +7,7 @@ By default, the build script will:
 2. Check to see if the container version already exists
 3. Lint the Dockerfile with `hadolint`
 4. Build the container image with Docker buildx
-5. Check the container image for vulnerabilities using `docker scan`
+5. Check the container image for vulnerabilities using `docker scan` (temporarily disabled)
 6. Push the image to the specified registries
 
 Images in the `stable` branch will automatically receive the 'latest' tag.
@@ -26,14 +26,15 @@ Copy the `examples` folder and add the new folder name to `build_folders.txt`.
 Make your changes to an image and increment the `version` field in `metadata.yml`.
 Pushing your changes to `stable` will automatically trigger a new image build.
 
-## Branches
-When a branch is pushed to this repo, any folders that change in the branch will be built and pushed with the version tag set to that branch's name.
+## Pull Requests
+When a pull request is made to this repo, a user with at least write permissions to this repo can enable pull request builds by either applying the 'ok-to-test' label or typing '/ok-to-test' in a comment. Then, any folders that change in the pull request will be built and pushed with the version tag set to 'PR-{PR NUM}-{BRANCH NAME}'.
+
 The version listed in `metadata.yml` will be ignored, but PRs will still check for version conflicts.
 
 ## FAQ
 ### Where are containers pushed to?
 Containers are currently pushed to both 'ghcr.io/slateci' and 'hub.opensciencegrid.org/slate'.
-Check the `IMAGE_URLS` variable in `build.py` to verify.
+Check the '--push-tags' flag in `.github/workflows/*` to verify.
 
 ### How do I trigger a lint job?
 Go to the 'Actions' tab on the top, click on 'Lint Dockerfiles' on the side, and then 'Run workflow ▼'.
