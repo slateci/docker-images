@@ -35,6 +35,23 @@ jobs:
             git fetch --depth=$i
           done
 
+      - name: Install dockle
+        run: |
+          VERSION=$(
+           curl --silent "https://api.github.com/repos/goodwithtech/dockle/releases/latest" | \
+           grep '"tag_name":' | \
+           sed -E 's/.*"v([^"]+)".*/\1/' \
+          ) && curl -L -o dockle.deb https://github.com/goodwithtech/dockle/releases/download/v${VERSION}/dockle_${VERSION}_Linux-64bit.deb
+          $ sudo dpkg -i dockle.deb && rm dockle.deb
+
+      - name: Install trivy
+        run: |
+          sudo apt-get install wget apt-transport-https gnupg lsb-release
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+          echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install trivy
+
       - name: Install hadolint
         run: |
           mkdir -p $GITHUB_WORKSPACE/bin
