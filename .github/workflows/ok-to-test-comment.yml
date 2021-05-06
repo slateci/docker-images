@@ -13,6 +13,7 @@ jobs:
       - name: Apply ok-to-test label if conditions are met
         uses: actions/github-script@v4
         with:
+          github-token: ${{ secrets.SLATECI_ROBOT_PAT }}
           result-encoding: string
           script: |
             // Check if comment has "/ok-to-test" on a line by itself.
@@ -32,6 +33,7 @@ jobs:
               return
             }
 
+            console.log("Adding ok-to-test label to PR")
             await github.issues.addLabels({
               issue_number: context.issue.number,
               ...context.repo,
