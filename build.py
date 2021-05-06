@@ -483,6 +483,13 @@ def force_build(args: argparse.Namespace) -> int:
     return 0
 
 
+def get_changed(args: argparse.Namespace) -> int:
+    changed_folders = get_changed_folders(args.from_commit, args.to_commit)
+
+    print("\n".join(changed_folders))
+    return 0
+
+
 parser = argparse.ArgumentParser(
     description="""
 Builds Docker images for slateci/docker-images.
@@ -594,6 +601,23 @@ force_build_p.add_argument(
     default="_save/images.tar",
 )
 force_build_p.set_defaults(func=force_build)
+
+get_changed_p = subparsers.add_parser(
+    "get-changed",
+    description="Get a new-line delimited list of folders that have changed between commits",
+    help="Get a list of folders that have changed between commits.",
+)
+get_changed_p.add_argument(
+    "from_commit",
+    type=str,
+    help="commit SHA from which to search for changes (exclusive)",
+)
+get_changed_p.add_argument(
+    "to_commit",
+    type=str,
+    help="commit SHA to which to search for changes (inclusive)",
+)
+get_changed_p.set_defaults(func=get_changed)
 
 if __name__ == "__main__":
     args = parser.parse_args()
