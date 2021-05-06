@@ -54,7 +54,7 @@ jobs:
           --save-images-to '_save/images.tar' \
           --check-existence 'ghcr.io/slateci/{name}:{version}' 'hub.opensciencegrid.org/slate/{name}:{version}' \
           --cache-from 'ghcr.io/slateci/{name}:latest' 'ghcr.io/slateci/{name}:PR-${{ github.event.pull_request.head.ref }}' \
-          --save-tags 'ghcr.io/slateci/{name}:PR-${{ github.event.pull_request.head.ref }}'
+          --save-tags 'ghcr.io/slateci/{name}:PR-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.ref }}'
 
       - name: Save PR Number
         run: |
