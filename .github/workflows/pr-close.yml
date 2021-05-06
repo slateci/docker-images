@@ -77,4 +77,4 @@ jobs:
                 package_version_id: img_id
                 });
               });
-}
+            }
