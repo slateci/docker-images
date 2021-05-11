@@ -383,11 +383,13 @@ def pipeline(args: argparse.Namespace) -> int:
 
         if not check_required_files(folder):
             failed.append(folder)
+            print("::endgroup::")
             continue
 
         metadata = get_metadata(folder)
         if metadata is None:
             failed.append(folder)
+            print("::endgroup::")
             continue
 
         tags = get_tags(
@@ -461,11 +463,13 @@ def force_build(args: argparse.Namespace) -> int:
 
         if not check_required_files(folder):
             failed.append(folder)
+            print("::endgroup::")
             continue
 
         metadata = get_metadata(folder)
         if metadata is None:
             failed.append(folder)
+            print("::endgroup::")
             continue
 
         tags = get_tags(
