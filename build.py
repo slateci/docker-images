@@ -381,7 +381,12 @@ def pipeline(args: argparse.Namespace) -> int:
     for folder in changed_folders:
         print(f"::group::{folder}")
 
-        if not (check_required_files(folder) and (metadata := get_metadata(folder))):
+        if not check_required_files(folder):
+            failed.append(folder)
+            continue
+
+        metadata = get_metadata(folder)
+        if metadata is None:
             failed.append(folder)
             continue
 
@@ -454,7 +459,12 @@ def force_build(args: argparse.Namespace) -> int:
     for folder in folders:
         print(f"::group::{folder}")
 
-        if not (check_required_files(folder) and (metadata := get_metadata(folder))):
+        if not check_required_files(folder):
+            failed.append(folder)
+            continue
+
+        metadata = get_metadata(folder)
+        if metadata is None:
             failed.append(folder)
             continue
 
