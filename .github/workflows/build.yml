@@ -8,10 +8,14 @@ on:
         required: True
         default: 'ALL'
 
+      clowntown:
+        description: 'This is a potentially destructive operation (see README). Type "CONFIRM" to acknowledge the risks.'
+        required: True
+
 jobs:
   main:
     runs-on: ubuntu-latest
-    if: ${{ github.ref == 'refs/heads/stable' }}
+    if: ${{ github.ref == 'refs/heads/stable' && github.event.inputs.clowntown == 'CONFIRM' }}
 
     steps:
       - uses: actions/checkout@v2
