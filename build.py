@@ -381,41 +381,46 @@ def pipeline(args: argparse.Namespace) -> int:
     for folder in changed_folders:
         print(f"::group::{folder}")
 
-        if not check_required_files(folder):
-            failed.append(folder)
-            print("::endgroup::")
-            continue
+        try:
+            if not check_required_files(folder):
+                failed.append(folder)
+                continue
 
-        metadata = get_metadata(folder)
-        if metadata is None:
-            failed.append(folder)
-            print("::endgroup::")
-            continue
+            metadata = get_metadata(folder)
+            if metadata is None:
+                failed.append(folder)
+                continue
 
-        tags = get_tags(
-            metadata,
-            args.check_existence_of,
-            args.cache_from,
-            args.push_tags,
-            args.save_tags,
-        )
-
-        if not (
-            not (check_tags_exists(tags.existence))
-            and lint_folder(folder)
-            and build_folder(
-                folder,
+            tags = get_tags(
                 metadata,
-                tags.build,
-                tags.cache,
+                args.check_existence_of,
+                args.cache_from,
+                args.push_tags,
+                args.save_tags,
             )
-            # and scan_for_vulnerability(folder, tags.local)
-            and (save_tags(args.save_images_to, tags.save) if args.save_tags else True)
-            and (push_tags(tags.push) if args.push_tags else True)
-        ):
-            failed.append(folder)
 
-        print("::endgroup::")
+            if not (
+                not (check_tags_exists(tags.existence))
+                and lint_folder(folder)
+                and build_folder(
+                    folder,
+                    metadata,
+                    tags.build,
+                    tags.cache,
+                )
+                # and scan_for_vulnerability(folder, tags.local)
+                and (
+                    save_tags(args.save_images_to, tags.save)
+                    if args.save_tags
+                    else True
+                )
+                and (push_tags(tags.push) if args.push_tags else True)
+            ):
+                failed.append(folder)
+                continue
+
+        finally:
+            print("::endgroup::")
 
     if len(failed) != 0:
         gh_error(f"The following images failed to build: {', '.join(failed)}")
