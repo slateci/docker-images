@@ -61,15 +61,11 @@ jobs:
 
             tags+="$delim"
             delim=" "
-            tags+=$(docker load -i "$tb" | sed 's/Loaded image: //' | tr '\n' ' ')
+            tags+=$(docker load -i "$tb" | sed 's/Loaded image: //' | tr '\n' ' ' | sed 's/[ ]$//')
           done
 
           echo "$tags" | xargs docker push || exit 1
           echo "::set-output name=TAGS::${tags}"
-
-      - run: echo "$EVENT_CONTEXT"
-        env:
-          EVENT_CONTEXT: ${{ toJSON(github.event.workflow_run) }}
 
       - name: 'Comment on PR'
         uses: actions/github-script@v3
@@ -79,9 +75,16 @@ jobs:
             var fs = require('fs');
             var issue_number = Number(fs.readFileSync('images/NR'));
 
+            const {data: {jobs: jobs}} = await github.actions.listJobsForWorkflowRun({
+              ...context.repo,
+              run_id: ${{ github.event.workflow_run.id }}
+            });
+
+            const job = jobs.find(j => j.name === "main");
+            const stepNum = job?.steps.find(s => s.name === "Run build.py")?.number;
+
             await github.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
+              ...context.repo,
               issue_number: issue_number,
-              body: '*This pull request has been successfully built!!*\n\nThe built images have been pushed to:\n${{ steps.push-tags.outputs.TAGS}}\n\nPlease note, these images are pushed solely for testing purposes. When this PR is closed/merged, these tags will be deleted, so **do not use these tags in production**. These images may still have lint/vuln warnings on which we did not fail on. See the full build report **[here](${{ github.event.repository.html_url }}/runs/${{ github.event.workflow_run.id }}?check_suite_focus=true#step:8:0)**.'
+              body: '*This pull request has been successfully built!!*\n\nThe built images have been pushed to:\n${{ steps.push-tags.outputs.TAGS}}\n\nPlease note, these images are pushed solely for testing purposes. When this PR is closed/merged, these tags will be deleted, so **do not use these tags in production**.' + (job != null && stepNum != null ? (' These images may still have lint/vuln warnings on which we did not fail on. See the full build report **[here](${{ github.event.repository.html_url }}/pull/' + issue_number + '/checks?check_run_id=' + job.id + '#step:' + stepNum + ':0)**.') : '')
             });
