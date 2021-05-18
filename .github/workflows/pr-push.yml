@@ -81,10 +81,10 @@ jobs:
             });
 
             const job = jobs.find(j => j.name === "main");
-            const stepNum = job?.steps.find(s => s.name === "Run build.py")?.number;
+            const stepNum = job.steps.find(s => s.name === "Run build.py").number;
 
             await github.issues.createComment({
               ...context.repo,
               issue_number: issue_number,
-              body: '*This pull request has been successfully built!!*\n\nThe built images have been pushed to:\n${{ steps.push-tags.outputs.TAGS}}\n\nPlease note, these images are pushed solely for testing purposes. When this PR is closed/merged, these tags will be deleted, so **do not use these tags in production**.' + (job != null && stepNum != null ? (' These images may still have lint/vuln warnings on which we did not fail on. See the full build report **[here](${{ github.event.repository.html_url }}/pull/' + issue_number + '/checks?check_run_id=' + job.id + '#step:' + stepNum + ':0)**.') : '')
+              body: '*This pull request has been successfully built!!*\n\nThe built images have been pushed to:\n${{ steps.push-tags.outputs.TAGS}}\n\nPlease note, these images are pushed solely for testing purposes. When this PR is closed/merged, these tags will be deleted, so **do not use these tags in production**. These images may still have lint/vuln warnings on which we did not fail on. See the full build report **[here](${{ github.event.repository.html_url }}/pull/' + issue_number + '/checks?check_run_id=' + job.id + '#step:' + stepNum + ':0)**.'
             });
