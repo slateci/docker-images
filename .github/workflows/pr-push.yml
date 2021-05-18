@@ -79,5 +79,5 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: issue_number,
-              body: '*This pull request has been successfully built!!*\n\nThe built images have been pushed to:\n${{ steps.push-tags.outputs.TAGS}}\n\nPlease note, these images are pushed solely for testing purposes. When this PR is closed/merged, these tags will be deleted, so **do not** use these tags in production.'
+              body: '*This pull request has been successfully built!!*\n\nThe built images have been pushed to:\n${{ steps.push-tags.outputs.TAGS}}\n\nPlease note, these images are pushed solely for testing purposes. When this PR is closed/merged, these tags will be deleted, so **do not use these tags in production**. These images may still have lint/vuln warnings on which we did not fail on. See the full build report **[here](${{ github.event.repository.html_url }}/runs/${{ github.event.workflow_run.id }}?check_suite_focus=true#step:6:0)**.'
             });
