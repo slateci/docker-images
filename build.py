@@ -439,15 +439,18 @@ def lint(args: argparse.Namespace) -> int:
     for folder in folders:
         print(f"::group::{folder}")
 
-        if not (
-            check_required_files(folder)
-            # check that the metadata file is valid
-            and get_metadata(folder)
-            and lint_folder(folder)
-        ):
-            failed.append(folder)
+        try:
+            if not (
+                check_required_files(folder)
+                # check that the metadata file is valid
+                and get_metadata(folder)
+                and lint_folder(folder)
+            ):
+                failed.append(folder)
+                continue
 
-        print("::endgroup::")
+        finally:
+            print("::endgroup::")
 
     if len(failed) != 0:
         gh_error(f"The following images failed to lint: {', '.join(failed)}")
@@ -466,33 +469,38 @@ def force_build(args: argparse.Namespace) -> int:
     for folder in folders:
         print(f"::group::{folder}")
 
-        if not check_required_files(folder):
-            failed.append(folder)
+        try:
+            if not check_required_files(folder):
+                failed.append(folder)
+                continue
+
+            metadata = get_metadata(folder)
+            if metadata is None:
+                failed.append(folder)
+                continue
+
+            tags = get_tags(
+                metadata,
+                [],
+                args.cache_from,
+                args.push_tags,
+                args.save_tags,
+            )
+
+            if not (
+                build_folder(folder, metadata, tags.build, tags.cache)
+                and (
+                    save_tags(args.save_images_to, tags.save)
+                    if args.save_tags
+                    else True
+                )
+                and (push_tags(tags.push) if args.push_tags else True)
+            ):
+                failed.append(folder)
+                continue
+
+        finally:
             print("::endgroup::")
-            continue
-
-        metadata = get_metadata(folder)
-        if metadata is None:
-            failed.append(folder)
-            print("::endgroup::")
-            continue
-
-        tags = get_tags(
-            metadata,
-            [],
-            args.cache_from,
-            args.push_tags,
-            args.save_tags,
-        )
-
-        if not (
-            build_folder(folder, metadata, tags.build, tags.cache)
-            and (save_tags(args.save_images_to, tags.save) if args.save_tags else True)
-            and (push_tags(tags.push) if args.push_tags else True)
-        ):
-            failed.append(folder)
-
-        print("::endgroup::")
 
     if len(failed) != 0:
         gh_error(f"The following images failed to build: {', '.join(failed)}")
