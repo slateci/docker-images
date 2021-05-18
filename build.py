@@ -6,7 +6,6 @@ Builds Docker images found in github.com/slateci/docker-images.
 This script assumes the following:
 1. pyyaml Python package is installed.
 2. hadolint is installed and on $PATH.
-3. `docker scan` plugin is installed.
 4. Docker Buildx is configured to be used by default.
 5. `docker login` has been called for each registry.
 """
@@ -62,16 +61,17 @@ def get_build_folders() -> Set[str]:
 
 
 def get_changed_folders(from_commit: str, to_commit: str) -> Set[str]:
-    # Get the list of folders we should be building.
     folders = get_build_folders()
 
     # Get the list of folders that have changes from the last commit.
+    # This is necessary as GHA push events could include multiple commits, thus
+    # `git diff --name-only HEAD` is insufficient.
     git_diff = subprocess.run(
         ["git", "diff", "--name-only", f"{from_commit}..{to_commit}"],
         capture_output=True,
     )
 
-    # Return only the folders we care about.
+    # Return only the folders we care about using set AND.
     return (
         set(map(lambda x: x.split("/")[0], git_diff.stdout.decode().splitlines()))
         & folders
@@ -93,6 +93,7 @@ def parse_folders_args(args: argparse.Namespace) -> Set[str]:
             print("No folders specified, doing nothing...", file=stderr)
 
         for f in args.folders:
+            # Allow for both space delimited and comma delimited folder lists.
             for ff in f.split(","):
                 if ff not in build_folders:
                     print(
@@ -106,13 +107,14 @@ def parse_folders_args(args: argparse.Namespace) -> Set[str]:
 
 
 def get_tags(
-    metadata: Dict[str, Any],
+    metadata: Dict[str, str],
     existence_t: List[str],
     cache_t: List[str],
     push_t: List[str],
     save_t: List[str],
 ) -> Tags:
     local_t = metadata["name"] + ":" + metadata["version"]
+    # Build with any tag that should be saved or pushed.
     build_t = set(push_t) | set(save_t) | {local_t}
 
     return Tags(
@@ -151,7 +153,7 @@ def check_required_files(folder: str) -> bool:
     return True
 
 
-def get_metadata(folder: str) -> Optional[Dict[str, Any]]:
+def get_metadata(folder: str) -> Optional[Dict[str, str]]:
     try:
         with open(f"{folder}/metadata.yml") as f:
             metadata = yaml.load(f.read(), Loader=Loader)
@@ -163,7 +165,7 @@ def get_metadata(folder: str) -> Optional[Dict[str, Any]]:
         gh_error("Unexpected metadata.yml format!")
         return None
     else:
-        metadata = cast(Dict[str, Any], metadata)
+        metadata = cast(Dict[str, str], metadata)
 
     if "name" not in metadata or metadata["name"] is None or metadata["name"] == "":
         gh_error("'name' field missing in metadata.yml!")
@@ -231,7 +233,7 @@ def lint_folder(folder: str) -> bool:
 
 ### Build ###
 def build_folder(
-    folder: str, metadata: Dict[str, Any], tags: List[str], cache_from: List[str]
+    folder: str, metadata: Dict[str, str], tags: List[str], cache_from: List[str]
 ) -> bool:
     print(">>>> Build Image <<<<")
 
@@ -258,8 +260,6 @@ def build_folder(
         .strip()
     )
 
-    cache_from_flags = [f"--cache-from=type=registry,ref={t}" for t in cache_from]
-
     labels_flags = []
     for k, v in labels.items():
         labels_flags += ["--label", f"{k}={v}"]
@@ -267,6 +267,8 @@ def build_folder(
     tag_flags = []
     for t in tags:
         tag_flags += ["--tag", t]
+
+    cache_from_flags = [f"--cache-from=type=registry,ref={t}" for t in cache_from]
 
     # Clean Docker image cache. This is necessary as we could potentially build
     # multiple images in a single go and exhaust storage space on the runner.
@@ -284,7 +286,6 @@ def build_folder(
         gh_error("Failed to prune images!")
         return False
 
-    # Pull image caches.
     build_output = subprocess.run(
         [
             "docker",
@@ -381,6 +382,8 @@ def pipeline(args: argparse.Namespace) -> int:
     for folder in changed_folders:
         print(f"::group::{folder}")
 
+        # Ensure we always print "::endgroup::" even if there's an exception,
+        # continue, etc. try/finally is pretty much a form of bracket pattern.
         try:
             if not check_required_files(folder):
                 failed.append(folder)
