@@ -1,7 +1,0 @@
-name: ansible-playbook
-description: Run ansible-playbook from a Docker container to avoid messing with Python environments.
-maintainer: Emerson Ford <emersontford@gmail.com>
-usage: >
-  `cd` to your kubespray directory and use `docker run --rm -i --mount type=bind,source="$(pwd)"/inventory,target=/opt/kubespray/inventory,readonly ghcr.io/slateci/ansible-playbook ...kubespray flags...`
-url:
-version: v1.0.0
