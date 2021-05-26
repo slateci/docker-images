@@ -105,12 +105,17 @@ print = partial(print, flush=True)
 ### Helper Functions ###
 # See https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions#grouping-log-lines
 # for information about these ::keyword:: messages.
+ENABLE_GH_PRINTING = True
+
+
 def gh_error(msg: str) -> None:
-    print("::error::" + msg)
+    if ENABLE_GH_PRINTING:
+        print("::error::" + msg)
 
 
 def gh_warning(msg: str) -> None:
-    print("::warning::" + msg)
+    if ENABLE_GH_PRINTING:
+        print("::warning::" + msg)
 
 
 def get_build_folders() -> Set[str]:
@@ -259,7 +264,53 @@ def get_metadata(folder: str) -> Optional[Metadata]:
     return md_obj
 
 
-def check_tags_exists(tags: List[str]) -> bool:
+def populate_claimed_tags(folders: Set[str]) -> Dict[str, str]:
+    """Populate claimed_tags with tags from folders that have not changed."""
+    # TODO: refactor project to use Result types to avoid having to use this hack
+    # disable gh_error temporarily to ignore folder errors
+    global ENABLE_GH_PRINTING
+    tmp = ENABLE_GH_PRINTING
+    ENABLE_GH_PRINTING = False
+
+    claimed_tags: Dict[str, str] = {}
+    for folder in folders:
+        if not check_required_files(folder):
+            continue
+
+        metadata = get_metadata(folder)
+        if metadata is None:
+            continue
+
+        for t in metadata.immutable_tags + metadata.mutable_tags:
+            claimed_tags[metadata.name + ":" + t] = folder
+
+    ENABLE_GH_PRINTING = tmp
+
+    return claimed_tags
+
+
+def check_tag_collision(
+    claimed_tags: Dict[str, str],
+    metadata: Metadata,
+    folder: str,
+) -> bool:
+    """Return False if a tag in to_claim_tags exists in claimed_tags, True otherwise.
+    Side effect: updates claimed_tags"""
+    for tag in metadata.immutable_tags + metadata.mutable_tags:
+        t = metadata.name + ":" + tag
+
+        if t in claimed_tags:
+            gh_error(
+                f"Tag '{t}' is used by the image in folder {claimed_tags[t]}, refusing to continue due to tag collision..."
+            )
+            return False
+
+        claimed_tags[t] = folder
+
+    return True
+
+
+def check_tags_pushed(tags: List[str]) -> bool:
     for t in tags:
         check = subprocess.run(
             ["docker", "manifest", "inspect", t], capture_output=True
@@ -275,9 +326,9 @@ def check_tags_exists(tags: List[str]) -> bool:
                 "(e.g. adding whitespace / comments to files). If you know what "
                 "you are doing, you can force a build/push from the Actions tab."
             )
-            return True
+            return False
 
-    return False
+    return True
 
 
 ### Lint ###
@@ -498,6 +549,8 @@ def pipeline(args: argparse.Namespace) -> int:
 
     failed = []
 
+    claimed_tags = populate_claimed_tags(get_build_folders() - changed_folders)
+
     for folder in changed_folders:
         print(f"::group::{folder}")
 
@@ -522,7 +575,8 @@ def pipeline(args: argparse.Namespace) -> int:
             )
 
             if not (
-                not (check_tags_exists(tags.existence))
+                (check_tag_collision(claimed_tags, metadata, folder))
+                and (check_tags_pushed(tags.existence))
                 and lint_folder(folder, args.lint_fail_level)
                 and build_folder(
                     folder,
@@ -589,6 +643,8 @@ def force_build(args: argparse.Namespace) -> int:
     folders = parse_folders_args(args)
     failed = []
 
+    claimed_tags = populate_claimed_tags(get_build_folders() - folders)
+
     for folder in folders:
         print(f"::group::{folder}")
 
@@ -611,7 +667,8 @@ def force_build(args: argparse.Namespace) -> int:
             )
 
             if not (
-                build_folder(folder, metadata, tags.build, tags.cache)
+                check_tag_collision(claimed_tags, metadata, folder)
+                and build_folder(folder, metadata, tags.build, tags.cache)
                 and (
                     save_tags(args.save_images_to, tags.save)
                     if args.save_tags
