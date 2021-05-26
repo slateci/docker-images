@@ -206,9 +206,10 @@ def get_tags(
             else:
                 yield tag
 
-    cache_t = expand_tags(cache_t)
-    push_t = expand_tags(push_t)
-    save_t = expand_tags(save_t)
+    existence_t = list(expand_tags(existence_t))
+    cache_t = list(expand_tags(cache_t))
+    push_t = list(expand_tags(push_t))
+    save_t = list(expand_tags(save_t))
 
     # Build with any tag that should be saved or pushed.
     build_t = set(push_t) | set(save_t) | {local_t}
@@ -315,6 +316,8 @@ def build_folder(
     folder: str, metadata: Metadata, tags: List[str], cache_from: List[str]
 ) -> bool:
     print(">>>> Build Image <<<<")
+    print("Building tags: ", tags)
+    print("Caching from: ", cache_from)
 
     labels = {}
     for field in LABEL_SCHEMA_FIELDS:
@@ -448,6 +451,7 @@ def trivy_scan(tag: str, fail_level: str) -> bool:
 ### Push ###
 def push_tags(tags: List[str]) -> bool:
     print(">>>> Push Image <<<<")
+    print("Pushing tags: ", tags)
 
     for t in tags:
         push_output = subprocess.run(["docker", "push", t], stdout=stdout)
