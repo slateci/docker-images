@@ -3,4 +3,6 @@ description:
 maintainer:
 usage:
 url:
-version: 10.3.22
+version: 10.3.23
+
+tags: ['latest']
