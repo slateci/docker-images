@@ -208,7 +208,7 @@ def check_tags_exists(tags: List[str]) -> bool:
 
 
 ### Lint ###
-def lint_folder(folder: str) -> bool:
+def lint_folder(folder: str, fail_level: str) -> bool:
     print(">>>> Lint Dockerfile <<<<")
 
     lint_output = subprocess.run(
@@ -222,7 +222,14 @@ def lint_folder(folder: str) -> bool:
         gh_error("Failed to lint Dockerfile!")
         return False
 
-    if "error" in lint_stdout:
+    fail_level_map = {
+        "STYLE": ["style", "info", "warning", "error"],
+        "INFO": ["info", "warning", "error"],
+        "WARNING": ["warning", "error"],
+        "ERROR": ["error"],
+    }
+
+    if any(lvl in lint_stdout for lvl in fail_level_map[fail_level]):
         gh_error("Dockerfile failed linter test!")
         return False
 
@@ -273,14 +280,16 @@ def build_folder(
     # Clean Docker image cache. This is necessary as we could potentially build
     # multiple images in a single go and exhaust storage space on the runner.
     cache_clean = subprocess.run(
-        ["docker", "buildx", "prune", "-a", "-f"], stdout=stdout
+        ["docker", "buildx", "prune", "-a", "-f"], capture_output=True
     )
 
     if cache_clean.returncode != 0:
         gh_error("Failed to clean build cache!")
         return False
 
-    image_clean = subprocess.run(["docker", "image", "prune", "-f"])
+    image_clean = subprocess.run(
+        ["docker", "image", "prune", "-f"], capture_output=True
+    )
 
     if image_clean.returncode != 0:
         gh_error("Failed to prune images!")
@@ -313,21 +322,49 @@ def build_folder(
 
 
 ### Scan for Vulnerabilities ###
-def scan_for_vulnerability(folder: str, tag: str) -> bool:
-    print(">>>> Scan Image for Vulnerabilities <<<<")
+def dockle_scan(tag: str, fail_level: str) -> bool:
+    print(">>>> Dockle Scan <<<<")
 
-    # TODO: use Dockle and Trivy here instead
     scan_output = subprocess.run(
-        ["docker", "scan", f"{tag}"],
-        stdout=stdout,
-        cwd=folder,
+        ["dockle", "--exit-code", "1", "--exit-level", fail_level.lower(), tag]
     )
 
     if scan_output.returncode != 0:
-        gh_error("Image failed vulnerability scan!")
+        gh_error("Image failed Dockle scan!")
         return False
 
-    print(">> Image vulnerability scan came back clean! <<")
+    print(">> Dockle Scan successful! <<")
+
+    return True
+
+
+def trivy_scan(tag: str, fail_level: str) -> bool:
+    print(">>>> Trivy Scan <<<<")
+
+    scan_output = subprocess.run(
+        ["trivy", "i", "--ignore-unfixed", "--light", tag], capture_output=True
+    )
+
+    scan_stdout = scan_output.stdout.decode().strip()
+    print(scan_stdout)
+
+    if scan_output.returncode != 0:
+        gh_error("Failed to perform Trivy scan!")
+        return False
+
+    fail_level_map = {
+        "LOW": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
+        "MEDIUM": ["MEDIUM", "HIGH", "CRITICAL"],
+        "HIGH": ["HIGH", "CRITICAL"],
+        "CRITICAL": ["CRITICAL"],
+    }
+
+    if any(lvl in scan_stdout for lvl in fail_level_map[fail_level]):
+        gh_error("Image failed Trivy scan!")
+        return False
+
+    print(">> Trivy Scan successful! <<")
+
     return True
 
 
@@ -371,7 +408,8 @@ def save_tags(save_to: str, tags: List[str]) -> bool:
 
 ### Main Functions ###
 def pipeline(args: argparse.Namespace) -> int:
-    print("Calling 'build.py pipeline' with args: " + str(args))
+    # For debugging argparse.
+    # print("Calling 'build.py pipeline' with args: " + str(args))
 
     changed_folders = get_changed_folders(args.from_commit, args.to_commit)
 
@@ -404,14 +442,15 @@ def pipeline(args: argparse.Namespace) -> int:
 
             if not (
                 not (check_tags_exists(tags.existence))
-                and lint_folder(folder)
+                and lint_folder(folder, args.lint_fail_level)
                 and build_folder(
                     folder,
                     metadata,
                     tags.build,
                     tags.cache,
                 )
-                # and scan_for_vulnerability(folder, tags.local)
+                and dockle_scan(tags.local, args.dockle_fail_level)
+                and trivy_scan(tags.local, args.trivy_fail_level)
                 and (
                     save_tags(args.save_images_to, tags.save)
                     if args.save_tags
@@ -447,7 +486,7 @@ def lint(args: argparse.Namespace) -> int:
                 check_required_files(folder)
                 # check that the metadata file is valid
                 and get_metadata(folder)
-                and lint_folder(folder)
+                and lint_folder(folder, args.fail_level)
             ):
                 failed.append(folder)
                 continue
@@ -533,7 +572,9 @@ pipeline_p = subparsers.add_parser(
     description=(
         "Lint, build, and push/save folders that have changed between specified commits. "
         "Tag related flags can use {name} and {version} as placeholders. "
-        "Ex: --push-tags ghcr.io/slateci/{name}:{version}"
+        "Ex: `--push-tags ghcr.io/slateci/{name}:{version}`. "
+        "dockle performs basic vuln checks on the Docker image. "
+        "trivy performs sophisticated vuln checks on the Docker image using vulnerability databases. "
     ),
     help="Lint, build, and push/save folders that have changed between specified commits",
 )
@@ -578,6 +619,27 @@ pipeline_p.add_argument(
     metavar="FILE",
     default="_save/images.tar",
 )
+pipeline_p.add_argument(
+    "--lint-fail-level",
+    choices=["STYLE", "INFO", "WARNING", "ERROR"],
+    help="the level of error from hadolint to fail on, one of STYLE, INFO, WARNING, or ERROR (default ERROR)",
+    metavar="LEVEL",
+    default="ERROR",
+)
+pipeline_p.add_argument(
+    "--dockle-fail-level",
+    choices=["INFO", "WARN", "FATAL"],
+    help="the level of error from dockle to fail on, one of INFO, WARN, or FATAL (default FATAL)",
+    metavar="LEVEL",
+    default="FATAL",
+)
+pipeline_p.add_argument(
+    "--trivy-fail-level",
+    choices=["LOW", "MEDIUM", "HIGH", "CRITICAL"],
+    help="the level of error from trivy to fail on, one of LOW, MEDIUM, HIGH, or CRITICAL (default CRITICAL)",
+    metavar="LEVEL",
+    default="CRITICAL",
+)
 pipeline_p.set_defaults(func=pipeline)
 
 lint_p = subparsers.add_parser(
@@ -587,6 +649,13 @@ lint_p.add_argument(
     "folders", help="space and/or comma separated list of folders to lint", nargs="*"
 )
 lint_p.add_argument("--all", help="lint all folders", action="store_true")
+lint_p.add_argument(
+    "--fail-level",
+    choices=["STYLE", "INFO", "WARNING", "ERROR"],
+    help="the level of error from hadolint to fail on, one of STYLE, INFO, WARNING, or ERROR (default ERROR)",
+    metavar="LEVEL",
+    default="ERROR",
+)
 lint_p.set_defaults(func=lint)
 
 force_build_p = subparsers.add_parser(
