@@ -172,18 +172,54 @@ def get_tags(
     save_t: List[str],
 ) -> Tags:
     local_t = metadata.name + ":" + metadata.version
+
+    # Expand 'mutable_tags[]' and 'immutable_tags[]' fields.
+    def expand_tags(tags: List[str]):
+        for tag in tags:
+            if "{mutable_tags[]}" in tag:
+                for recur in expand_tags(
+                    [
+                        # Expand ONLY the first instance of {mutable_tags[]}
+                        # and keep all other format blocks untouched.
+                        # only a little cursed
+                        tag.replace("{", "{{")
+                        .replace("}", "}}")
+                        .replace("{{mutable_tags[]}}", "{t}", 1)
+                        .format(t=t)
+                        for t in metadata.mutable_tags
+                    ]
+                ):
+                    yield recur
+
+            elif "{immutable_tags[]}" in tag:
+                for recur in expand_tags(
+                    [
+                        tag.replace("{", "{{")
+                        .replace("}", "}}")
+                        .replace("{{immutable_tags[]}}", "{t}", 1)
+                        .format(t=t)
+                        for t in metadata.immutable_tags
+                    ]
+                ):
+                    yield recur
+
+            else:
+                yield tag
+
+    cache_t = expand_tags(cache_t)
+    push_t = expand_tags(push_t)
+    save_t = expand_tags(save_t)
+
     # Build with any tag that should be saved or pushed.
     build_t = set(push_t) | set(save_t) | {local_t}
 
     return Tags(
         local=local_t,
-        existence=[
-            t.format(name=metadata.name, version=metadata.version) for t in existence_t
-        ],
-        cache=[t.format(name=metadata.name, version=metadata.version) for t in cache_t],
-        build=[t.format(name=metadata.name, version=metadata.version) for t in build_t],
-        push=[t.format(name=metadata.name, version=metadata.version) for t in push_t],
-        save=[t.format(name=metadata.name, version=metadata.version) for t in save_t],
+        existence=[t.format(name=metadata.name) for t in existence_t],
+        cache=[t.format(name=metadata.name) for t in cache_t],
+        build=[t.format(name=metadata.name) for t in build_t],
+        push=[t.format(name=metadata.name) for t in push_t],
+        save=[t.format(name=metadata.name) for t in save_t],
     )
 
 
@@ -611,12 +647,14 @@ subparsers = parser.add_subparsers()
 pipeline_p = subparsers.add_parser(
     "pipeline",
     description=(
-        "Lint, build, and push/save folders that have changed between specified commits. "
-        "Tag related flags can use {name} and {version} as placeholders. "
-        "Ex: `--push-tags ghcr.io/slateci/{name}:{version}`. "
+        "Lint, build, and push/save folders that have changed between specified commits.\n\n"
+        "Tag related flags can use {name}, {mutable_tags[]}, and {immutable_tags[]} as placeholders. "
+        "The latter two will expand to each tag in the list.\n"
+        "Ex: if name = 'foobar' and mutable_tags = ['latest', 'latest3'] then `--push-tags ghcr.io/slateci/{name}:{mutable_tags[]}` will push the tags 'ghcr.io/slateci/foobar:latest' and 'ghcr.io/slateci/foobar:latest3'.\n\n"
         "dockle performs basic vuln checks on the Docker image. "
         "trivy performs sophisticated vuln checks on the Docker image using vulnerability databases. "
     ),
+    formatter_class=argparse.RawDescriptionHelpFormatter,
     help="Lint, build, and push/save folders that have changed between specified commits",
 )
 pipeline_p.add_argument(
@@ -702,10 +740,12 @@ lint_p.set_defaults(func=lint)
 force_build_p = subparsers.add_parser(
     "force-build",
     description=(
-        "Force build and push/save specified folders (ignoring lint, version existence, and vulnerability errors). "
-        "Tag related flags can use {name} and {version} as placeholders. "
-        "Ex: --push-tags ghcr.io/slateci/{name}:{version}"
+        "Force build and push/save specified folders (ignoring lint, version existence, and vulnerability errors).\n\n"
+        "Tag related flags can use {name}, {mutable_tags[]}, and {immutable_tags[]} as placeholders. "
+        "The latter two will expand to each tag in the list.\n"
+        "Ex: if name = 'foobar' and mutable_tags = ['latest', 'latest3'] then `--push-tags ghcr.io/slateci/{name}:{mutable_tags[]}` will push the tags 'ghcr.io/slateci/foobar:latest' and 'ghcr.io/slateci/foobar:latest3'.\n\n"
     ),
+    formatter_class=argparse.RawDescriptionHelpFormatter,
     help="Force build and push/save specified folders (ignoring lint, version existence, and vulnerability errors)",
 )
 force_build_p.add_argument(
