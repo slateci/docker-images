@@ -12,6 +12,7 @@ This script assumes the following:
 
 import argparse
 import datetime
+import re
 import subprocess
 from functools import partial
 from os import path
@@ -30,6 +31,63 @@ BUILD_FOLDERS_FILE = "build_folders.txt"
 
 LABEL_SCHEMA_FIELDS = ["name", "description", "maintainer", "usage", "url", "version"]
 SLATE_FIELDS = ["maintainer"]
+
+
+class Metadata:
+    name: str
+    version: str
+    description: Optional[str]
+    maintainer: Optional[str]
+    usage: Optional[str]
+    url: Optional[str]
+    mutable_tags: List[str]
+    immutable_tags: List[str]
+
+    def __init__(
+        self,
+        name: str,
+        version: str,
+        description: Optional[str] = None,
+        maintainer: Optional[str] = None,
+        usage: Optional[str] = None,
+        url: Optional[str] = None,
+        mutable_tags: List[str] = [],
+        immutable_tags: List[str] = [],
+    ) -> None:
+        if not isinstance(name, str):
+            raise RuntimeError("'name' is not of type str.")
+        if not isinstance(version, str):
+            raise RuntimeError("'version' is not of type str.")
+        if not (description is None or isinstance(description, str)):
+            raise RuntimeError("'description' is not of type Optional[str].")
+        if not (maintainer is None or isinstance(maintainer, str)):
+            raise RuntimeError("'maintainer' is not of type Optional[str].")
+        if not (usage is None or isinstance(usage, str)):
+            raise RuntimeError("'usage' is not of type Optional[str].")
+        if not (url is None or isinstance(url, str)):
+            raise RuntimeError("'url' is not of type Optional[str].")
+        if not (
+            isinstance(mutable_tags, list)
+            and all(isinstance(i, str) for i in mutable_tags)
+        ):
+            raise RuntimeError("'mutable_tags' is not of type List[str].")
+        if not (
+            isinstance(immutable_tags, list)
+            and all(isinstance(i, str) for i in immutable_tags)
+        ):
+            raise RuntimeError("'immutable_tags' is not of type List[str].")
+
+        if not re.match(r"^\d+[.]\d+[.]\d+$", version):
+            raise RuntimeError("'version' must be of semver form (e.g. 1.0.0).")
+
+        self.name = name
+        self.version = version
+        self.description = description
+        self.maintainer = maintainer
+        self.usage = usage
+        self.url = url
+        self.mutable_tags = mutable_tags
+        self.immutable_tags = immutable_tags
 
 
 class Tags(NamedTuple):
@@ -107,36 +165,25 @@ def parse_folders_args(args: argparse.Namespace) -> Set[str]:
 
 
 def get_tags(
-    metadata: Dict[str, str],
+    metadata: Metadata,
     existence_t: List[str],
     cache_t: List[str],
     push_t: List[str],
     save_t: List[str],
 ) -> Tags:
-    local_t = metadata["name"] + ":" + metadata["version"]
+    local_t = metadata.name + ":" + metadata.version
     # Build with any tag that should be saved or pushed.
     build_t = set(push_t) | set(save_t) | {local_t}
 
     return Tags(
         local=local_t,
         existence=[
-            t.format(name=metadata["name"], version=metadata["version"])
-            for t in existence_t
+            t.format(name=metadata.name, version=metadata.version) for t in existence_t
         ],
-        cache=[
-            t.format(name=metadata["name"], version=metadata["version"])
-            for t in cache_t
-        ],
-        build=[
-            t.format(name=metadata["name"], version=metadata["version"])
-            for t in build_t
-        ],
-        push=[
-            t.format(name=metadata["name"], version=metadata["version"]) for t in push_t
-        ],
-        save=[
-            t.format(name=metadata["name"], version=metadata["version"]) for t in save_t
-        ],
+        cache=[t.format(name=metadata.name, version=metadata.version) for t in cache_t],
+        build=[t.format(name=metadata.name, version=metadata.version) for t in build_t],
+        push=[t.format(name=metadata.name, version=metadata.version) for t in push_t],
+        save=[t.format(name=metadata.name, version=metadata.version) for t in save_t],
     )
 
 
@@ -153,7 +200,7 @@ def check_required_files(folder: str) -> bool:
     return True
 
 
-def get_metadata(folder: str) -> Optional[Dict[str, str]]:
+def get_metadata(folder: str) -> Optional[Metadata]:
     try:
         with open(f"{folder}/metadata.yml") as f:
             metadata = yaml.load(f.read(), Loader=Loader)
@@ -164,26 +211,15 @@ def get_metadata(folder: str) -> Optional[Dict[str, str]]:
     if not isinstance(metadata, dict):
         gh_error("Unexpected metadata.yml format!")
         return None
-    else:
-        metadata = cast(Dict[str, str], metadata)
 
-    if "name" not in metadata or metadata["name"] is None or metadata["name"] == "":
-        gh_error("'name' field missing in metadata.yml!")
+    metadata = cast(Dict[str, Any], metadata)
+    try:
+        md_obj = Metadata(**metadata)
+    except RuntimeError as e:
+        gh_error(f"Metadata error: {e.args[0]}")
         return None
 
-    if (
-        "version" not in metadata
-        or metadata["version"] is None
-        or metadata["version"] == ""
-    ):
-        gh_error("'version' field missing in metadata.yml!")
-        return None
-
-    if metadata["version"] == "latest":
-        gh_error("'version' field is prohibited to be 'latest'.")
-        return None
-
-    return metadata
+    return md_obj
 
 
 def check_tags_exists(tags: List[str]) -> bool:
@@ -240,18 +276,18 @@ def lint_folder(folder: str, fail_level: str) -> bool:
 
 ### Build ###
 def build_folder(
-    folder: str, metadata: Dict[str, str], tags: List[str], cache_from: List[str]
+    folder: str, metadata: Metadata, tags: List[str], cache_from: List[str]
 ) -> bool:
     print(">>>> Build Image <<<<")
 
     labels = {}
     for field in LABEL_SCHEMA_FIELDS:
-        if field in metadata and metadata[field] is not None and metadata[field] != "":
-            labels[f"org.label-schema.{field}"] = metadata[field]
+        if getattr(metadata, field) is not None:
+            labels[f"org.label-schema.{field}"] = getattr(metadata, field)
 
     for field in SLATE_FIELDS:
-        if field in metadata and metadata[field] is not None and metadata[field] != "":
-            labels[f"io.slateci.{field}"] = metadata[field]
+        if getattr(metadata, field) is not None:
+            labels[f"io.slateci.{field}"] = getattr(metadata, field)
 
     labels["org.label-schema.vendor"] = "SLATE CI"
     labels["org.label-schema.build-date"] = datetime.datetime.now(
@@ -359,6 +395,9 @@ def trivy_scan(tag: str, fail_level: str) -> bool:
         "CRITICAL": ["CRITICAL"],
     }
 
+    # A hack to get just the table so the summary at the top doesn't
+    # trip a false positive.
+    # TODO: find a more elegant solution for this
     scan_table = scan_stdout[scan_stdout.find("+--") :]
 
     if any(lvl in scan_table for lvl in fail_level_map[fail_level]):
