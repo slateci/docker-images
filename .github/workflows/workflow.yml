@@ -66,9 +66,9 @@ jobs:
       - name: Run build.py
         run: |
           ./build.py pipeline ${{ github.event.before }} ${{ github.event.after }} \
-          --check-existence 'ghcr.io/slateci/{name}:{immutable_tags[]}' 'hub.opensciencegrid.org/slate/{name}:{immutable_tags[]}' \
-          --cache-from 'ghcr.io/slateci/{name}:{mutable_tags[]}' \
-          --push-tags 'ghcr.io/slateci/{name}:{mutable_tags[]}' 'ghcr.io/slateci/{name}:{immutable_tags[]}' 'hub.opensciencegrid.org/slate/{name}:{mutable_tags[]}'  'hub.opensciencegrid.org/slate/{name}:{immutable_tags[]}'
+          --check-existence 'ghcr.io/slateci/{name}:{version}' 'hub.opensciencegrid.org/slate/{name}:{version}' \
+          --cache-from 'ghcr.io/slateci/{name}:{tags[]}' \
+          --push-tags 'ghcr.io/slateci/{name}:{version}' 'ghcr.io/slateci/{name}:{tags[]}' 'hub.opensciencegrid.org/slate/{name}:{version}'  'hub.opensciencegrid.org/slate/{name}:{tags[]}'
 
       - name: Notify Slack of Failure
         if: failure()

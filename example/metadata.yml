@@ -8,8 +8,7 @@
 
 name:
 # Must follow semver notation (e.g. 1.0.3).
-# &v creates a yaml anchor to be used in immutable tags.
-version: &v 1.0.0
+version: 1.0.0
 description:
 maintainer:
 usage:
@@ -19,7 +18,4 @@ url:
 # If a collision is found, the workflow will error out.
 
 # Tags that can be overwritten, such as 'latest'.
-mutable_tags: ['latest']
-# Tags that should not be overwritted, iow if these tags already exist, fail
-# the workflow. *v refers to the 'v' anchor created above.
-immutable_tags: [*v]
+tags: ['latest']

@@ -40,8 +40,7 @@ class Metadata:
     maintainer: Optional[str]
     usage: Optional[str]
     url: Optional[str]
-    mutable_tags: List[str]
-    immutable_tags: List[str]
+    tags: List[str]
 
     def __init__(
         self,
@@ -51,8 +50,7 @@ class Metadata:
         maintainer: Optional[str] = None,
         usage: Optional[str] = None,
         url: Optional[str] = None,
-        mutable_tags: List[str] = [],
-        immutable_tags: List[str] = [],
+        tags: List[str] = [],
     ) -> None:
         if not isinstance(name, str):
             raise RuntimeError("'name' is not of type str.")
@@ -66,16 +64,8 @@ class Metadata:
             raise RuntimeError("'usage' is not of type Optional[str].")
         if not (url is None or isinstance(url, str)):
             raise RuntimeError("'url' is not of type Optional[str].")
-        if not (
-            isinstance(mutable_tags, list)
-            and all(isinstance(i, str) for i in mutable_tags)
-        ):
-            raise RuntimeError("'mutable_tags' is not of type List[str].")
-        if not (
-            isinstance(immutable_tags, list)
-            and all(isinstance(i, str) for i in immutable_tags)
-        ):
-            raise RuntimeError("'immutable_tags' is not of type List[str].")
+        if not (isinstance(tags, list) and all(isinstance(i, str) for i in tags)):
+            raise RuntimeError("'tags' is not of type List[str].")
 
         if not re.match(r"^\d+[.]\d+[.]\d+$", version):
             raise RuntimeError("'version' must be of semver form (e.g. 1.0.0).")
@@ -86,8 +76,7 @@ class Metadata:
         self.maintainer = maintainer
         self.usage = usage
         self.url = url
-        self.mutable_tags = mutable_tags
-        self.immutable_tags = immutable_tags
+        self.tags = tags
 
 
 class Tags(NamedTuple):
@@ -178,32 +167,20 @@ def get_tags(
 ) -> Tags:
     local_t = metadata.name + ":" + metadata.version
 
-    # Expand 'mutable_tags[]' and 'immutable_tags[]' fields.
+    # Expand 'tags[]' field.
     def expand_tags(tags: List[str]):
         for tag in tags:
-            if "{mutable_tags[]}" in tag:
+            if "{tags[]}" in tag:
                 for recur in expand_tags(
                     [
-                        # Expand ONLY the first instance of {mutable_tags[]}
+                        # Expand ONLY the first instance of {tags[]}
                         # and keep all other format blocks untouched.
                         # only a little cursed
                         tag.replace("{", "{{")
                         .replace("}", "}}")
-                        .replace("{{mutable_tags[]}}", "{t}", 1)
+                        .replace("{{tags[]}}", "{t}", 1)
                         .format(t=t)
-                        for t in metadata.mutable_tags
-                    ]
-                ):
-                    yield recur
-
-            elif "{immutable_tags[]}" in tag:
-                for recur in expand_tags(
-                    [
-                        tag.replace("{", "{{")
-                        .replace("}", "}}")
-                        .replace("{{immutable_tags[]}}", "{t}", 1)
-                        .format(t=t)
-                        for t in metadata.immutable_tags
+                        for t in metadata.tags
                     ]
                 ):
                     yield recur
@@ -221,11 +198,13 @@ def get_tags(
 
     return Tags(
         local=local_t,
-        existence=[t.format(name=metadata.name) for t in existence_t],
-        cache=[t.format(name=metadata.name) for t in cache_t],
-        build=[t.format(name=metadata.name) for t in build_t],
-        push=[t.format(name=metadata.name) for t in push_t],
-        save=[t.format(name=metadata.name) for t in save_t],
+        existence=[
+            t.format(name=metadata.name, version=metadata.version) for t in existence_t
+        ],
+        cache=[t.format(name=metadata.name, version=metadata.version) for t in cache_t],
+        build=[t.format(name=metadata.name, version=metadata.version) for t in build_t],
+        push=[t.format(name=metadata.name, version=metadata.version) for t in push_t],
+        save=[t.format(name=metadata.name, version=metadata.version) for t in save_t],
     )
 
 
@@ -281,7 +260,7 @@ def populate_claimed_tags(folders: Set[str]) -> Dict[str, str]:
         if metadata is None:
             continue
 
-        for t in metadata.immutable_tags + metadata.mutable_tags:
+        for t in [metadata.version] + metadata.tags:
             claimed_tags[metadata.name + ":" + t] = folder
 
     ENABLE_GH_PRINTING = tmp
@@ -296,7 +275,7 @@ def check_tag_collision(
 ) -> bool:
     """Return False if a tag in to_claim_tags exists in claimed_tags, True otherwise.
     Side effect: updates claimed_tags"""
-    for tag in metadata.immutable_tags + metadata.mutable_tags:
+    for tag in [metadata.version] + metadata.tags:
         t = metadata.name + ":" + tag
 
         if t in claimed_tags:
@@ -709,9 +688,9 @@ pipeline_p = subparsers.add_parser(
     "pipeline",
     description=(
         "Lint, build, and push/save folders that have changed between specified commits.\n\n"
-        "Tag related flags can use {name}, {mutable_tags[]}, and {immutable_tags[]} as placeholders. "
+        "Tag related flags can use {name}, {version}, and {tags[]}, as placeholders. "
         "The latter two will expand to each tag in the list.\n"
-        "Ex: if name = 'foobar' and mutable_tags = ['latest', 'latest3'] then `--push-tags ghcr.io/slateci/{name}:{mutable_tags[]}` will push the tags 'ghcr.io/slateci/foobar:latest' and 'ghcr.io/slateci/foobar:latest3'.\n\n"
+        "Ex: if name = 'foobar' and tags = ['latest', 'latest3'] then `--push-tags ghcr.io/slateci/{name}:{tags[]}` will push the tags 'ghcr.io/slateci/foobar:latest' and 'ghcr.io/slateci/foobar:latest3'.\n\n"
         "dockle performs basic vuln checks on the Docker image. "
         "trivy performs sophisticated vuln checks on the Docker image using vulnerability databases. "
     ),
@@ -802,9 +781,9 @@ force_build_p = subparsers.add_parser(
     "force-build",
     description=(
         "Force build and push/save specified folders (ignoring lint, version existence, and vulnerability errors).\n\n"
-        "Tag related flags can use {name}, {mutable_tags[]}, and {immutable_tags[]} as placeholders. "
+        "Tag related flags can use {name}, {version}, and {tags[]} as placeholders. "
         "The latter two will expand to each tag in the list.\n"
-        "Ex: if name = 'foobar' and mutable_tags = ['latest', 'latest3'] then `--push-tags ghcr.io/slateci/{name}:{mutable_tags[]}` will push the tags 'ghcr.io/slateci/foobar:latest' and 'ghcr.io/slateci/foobar:latest3'.\n\n"
+        "Ex: if name = 'foobar' and tags = ['latest', 'latest3'] then `--push-tags ghcr.io/slateci/{name}:{tags[]}` will push the tags 'ghcr.io/slateci/foobar:latest' and 'ghcr.io/slateci/foobar:latest3'.\n\n"
     ),
     formatter_class=argparse.RawDescriptionHelpFormatter,
     help="Force build and push/save specified folders (ignoring lint, version existence, and vulnerability errors)",
