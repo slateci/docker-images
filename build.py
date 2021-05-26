@@ -359,7 +359,9 @@ def trivy_scan(tag: str, fail_level: str) -> bool:
         "CRITICAL": ["CRITICAL"],
     }
 
-    if any(lvl in scan_stdout for lvl in fail_level_map[fail_level]):
+    scan_table = scan_stdout[scan_stdout.find("+--") :]
+
+    if any(lvl in scan_table for lvl in fail_level_map[fail_level]):
         gh_error("Image failed Trivy scan!")
         return False
 
