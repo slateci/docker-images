@@ -14,11 +14,12 @@ import argparse
 import datetime
 import re
 import subprocess
+from contextlib import contextmanager
 from functools import partial
 from os import path
 from pathlib import Path
 from sys import stderr, stdout
-from typing import Any, Dict, List, NamedTuple, Optional, Set, Tuple, cast
+from typing import Any, Dict, List, NamedTuple, Optional, Set, cast
 
 import yaml
 
@@ -94,16 +95,33 @@ print = partial(print, flush=True)
 ### Helper Functions ###
 # See https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions#grouping-log-lines
 # for information about these ::keyword:: messages.
-ENABLE_GH_PRINTING = True
+ENABLE_GHA_PRINTING = True
 
 
-def gh_error(msg: str) -> None:
-    if ENABLE_GH_PRINTING:
+@contextmanager
+def disable_gha_printing():
+    # TODO: refactor project to use Result types to avoid having to use this hack
+    global ENABLE_GHA_PRINTING
+    tmp = ENABLE_GHA_PRINTING
+    ENABLE_GHA_PRINTING = False
+    yield
+    ENABLE_GHA_PRINTING = tmp
+
+
+@contextmanager
+def gha_group(group_name: str):
+    print("::group::" + group_name)
+    yield
+    print("::endgroup::")
+
+
+def gha_error(msg: str) -> None:
+    if ENABLE_GHA_PRINTING:
         print("::error::" + msg)
 
 
-def gh_warning(msg: str) -> None:
-    if ENABLE_GH_PRINTING:
+def gha_warning(msg: str) -> None:
+    if ENABLE_GHA_PRINTING:
         print("::warning::" + msg)
 
 
@@ -211,11 +229,11 @@ def get_tags(
 ### Prebuild Checks ###
 def check_required_files(folder: str) -> bool:
     if not path.isfile(f"{folder}/Dockerfile"):
-        gh_error("Dockerfile not found!")
+        gha_error("Dockerfile not found!")
         return False
 
     if not path.isfile(f"{folder}/metadata.yml"):
-        gh_error("metadata.yml not found!")
+        gha_error("metadata.yml not found!")
         return False
 
     return True
@@ -226,18 +244,18 @@ def get_metadata(folder: str) -> Optional[Metadata]:
         with open(f"{folder}/metadata.yml") as f:
             metadata = yaml.load(f.read(), Loader=Loader)
     except Exception as e:
-        gh_error(f"Failed to read metadata.yml: {e}")
+        gha_error(f"Failed to read metadata.yml: {e}")
         return None
 
     if not isinstance(metadata, dict):
-        gh_error("Unexpected metadata.yml format!")
+        gha_error("Unexpected metadata.yml format!")
         return None
 
     metadata = cast(Dict[str, Any], metadata)
     try:
         md_obj = Metadata(**metadata)
     except RuntimeError as e:
-        gh_error(f"Metadata error: {e.args[0]}")
+        gha_error(f"Metadata error: {e.args[0]}")
         return None
 
     return md_obj
@@ -245,27 +263,21 @@ def get_metadata(folder: str) -> Optional[Metadata]:
 
 def populate_claimed_tags(folders: Set[str]) -> Dict[str, str]:
     """Populate claimed_tags with tags from folders that have not changed."""
-    # TODO: refactor project to use Result types to avoid having to use this hack
     # disable gh_error temporarily to ignore folder errors
-    global ENABLE_GH_PRINTING
-    tmp = ENABLE_GH_PRINTING
-    ENABLE_GH_PRINTING = False
+    with disable_gha_printing():
+        claimed_tags: Dict[str, str] = {}
+        for folder in folders:
+            if not check_required_files(folder):
+                continue
 
-    claimed_tags: Dict[str, str] = {}
-    for folder in folders:
-        if not check_required_files(folder):
-            continue
+            metadata = get_metadata(folder)
+            if metadata is None:
+                continue
 
-        metadata = get_metadata(folder)
-        if metadata is None:
-            continue
+            for t in [metadata.version] + metadata.tags:
+                claimed_tags[metadata.name + ":" + t] = folder
 
-        for t in [metadata.version] + metadata.tags:
-            claimed_tags[metadata.name + ":" + t] = folder
-
-    ENABLE_GH_PRINTING = tmp
-
-    return claimed_tags
+        return claimed_tags
 
 
 def check_tag_collision(
@@ -279,7 +291,7 @@ def check_tag_collision(
         t = metadata.name + ":" + tag
 
         if t in claimed_tags:
-            gh_error(
+            gha_error(
                 f"Tag '{t}' is used by the image in folder {claimed_tags[t]}, refusing to continue due to tag collision..."
             )
             return False
@@ -296,7 +308,7 @@ def check_tags_pushed(tags: List[str]) -> bool:
         )
 
         if check.returncode == 0:
-            gh_error(f"{t} exists, stopping...")
+            gha_error(f"{t} exists, stopping...")
             print(
                 "Overriding existing tags of a container is _dangerous_ "
                 "and should be avoided if possible. We recommend incrementing "
@@ -322,7 +334,7 @@ def lint_folder(folder: str, fail_level: str) -> bool:
     print(lint_stdout)
 
     if lint_output.returncode != 0:
-        gh_error("Failed to lint Dockerfile!")
+        gha_error("Failed to lint Dockerfile!")
         return False
 
     fail_level_map = {
@@ -333,7 +345,7 @@ def lint_folder(folder: str, fail_level: str) -> bool:
     }
 
     if any(lvl in lint_stdout for lvl in fail_level_map[fail_level]):
-        gh_error("Dockerfile failed linter test!")
+        gha_error("Dockerfile failed linter test!")
         return False
 
     print(">> Lint successful! <<")
@@ -389,7 +401,7 @@ def build_folder(
     )
 
     if cache_clean.returncode != 0:
-        gh_error("Failed to clean build cache!")
+        gha_error("Failed to clean build cache!")
         return False
 
     image_clean = subprocess.run(
@@ -397,7 +409,7 @@ def build_folder(
     )
 
     if image_clean.returncode != 0:
-        gh_error("Failed to prune images!")
+        gha_error("Failed to prune images!")
         return False
 
     build_output = subprocess.run(
@@ -419,7 +431,7 @@ def build_folder(
     )
 
     if build_output.returncode != 0:
-        gh_error("Failed to build!")
+        gha_error("Failed to build!")
         return False
 
     print(">> Successfully built! <<")
@@ -435,7 +447,7 @@ def dockle_scan(tag: str, fail_level: str) -> bool:
     )
 
     if scan_output.returncode != 0:
-        gh_error("Image failed Dockle scan!")
+        gha_error("Image failed Dockle scan!")
         return False
 
     print(">> Dockle Scan successful! <<")
@@ -454,7 +466,7 @@ def trivy_scan(tag: str, fail_level: str) -> bool:
     print(scan_stdout)
 
     if scan_output.returncode != 0:
-        gh_error("Failed to perform Trivy scan!")
+        gha_error("Failed to perform Trivy scan!")
         return False
 
     fail_level_map = {
@@ -470,7 +482,7 @@ def trivy_scan(tag: str, fail_level: str) -> bool:
     scan_table = scan_stdout[scan_stdout.find("+--") :]
 
     if any(lvl in scan_table for lvl in fail_level_map[fail_level]):
-        gh_error("Image failed Trivy scan!")
+        gha_error("Image failed Trivy scan!")
         return False
 
     print(">> Trivy Scan successful! <<")
@@ -487,7 +499,7 @@ def push_tags(tags: List[str]) -> bool:
         push_output = subprocess.run(["docker", "push", t], stdout=stdout)
 
         if push_output.returncode != 0:
-            gh_error(f"Failed to push {t}!")
+            gha_error(f"Failed to push {t}!")
             return False
 
     print(">> Successfully pushed! <<")
@@ -501,7 +513,7 @@ def save_tags(save_to: str, tags: List[str]) -> bool:
     loc = Path(save_to)
 
     if loc.suffix != ".tar":
-        gh_error("Save location must end in .tar!")
+        gha_error("Save location must end in .tar!")
         return False
 
     if not loc.parent.exists():
@@ -510,7 +522,7 @@ def save_tags(save_to: str, tags: List[str]) -> bool:
     save_img = subprocess.run(["docker", "save", "-o", str(loc)] + tags, stdout=stdout)
 
     if save_img.returncode != 0:
-        gh_error(f"Failed to save images in {loc}!")
+        gha_error(f"Failed to save images in {loc}!")
         return False
 
     print(">> Successfully Saved Image! <<")
@@ -531,11 +543,7 @@ def pipeline(args: argparse.Namespace) -> int:
     claimed_tags = populate_claimed_tags(get_build_folders() - changed_folders)
 
     for folder in changed_folders:
-        print(f"::group::{folder}")
-
-        # Ensure we always print "::endgroup::" even if there's an exception,
-        # continue, etc. try/finally is pretty much a form of bracket pattern.
-        try:
+        with gha_group(folder):
             if not check_required_files(folder):
                 failed.append(folder)
                 continue
@@ -575,11 +583,8 @@ def pipeline(args: argparse.Namespace) -> int:
                 failed.append(folder)
                 continue
 
-        finally:
-            print("::endgroup::")
-
     if len(failed) != 0:
-        gh_error(f"The following images failed to build: {', '.join(failed)}")
+        gha_error(f"The following images failed to build: {', '.join(failed)}")
         return 1
 
     print("Successfully built all images!")
@@ -593,9 +598,7 @@ def lint(args: argparse.Namespace) -> int:
     failed = []
 
     for folder in folders:
-        print(f"::group::{folder}")
-
-        try:
+        with gha_group(folder):
             if not (
                 check_required_files(folder)
                 # check that the metadata file is valid
@@ -605,11 +608,8 @@ def lint(args: argparse.Namespace) -> int:
                 failed.append(folder)
                 continue
 
-        finally:
-            print("::endgroup::")
-
     if len(failed) != 0:
-        gh_error(f"The following images failed to lint: {', '.join(failed)}")
+        gha_error(f"The following images failed to lint: {', '.join(failed)}")
         return 1
 
     print("Successfully linted all images!")
@@ -625,9 +625,7 @@ def force_build(args: argparse.Namespace) -> int:
     claimed_tags = populate_claimed_tags(get_build_folders() - folders)
 
     for folder in folders:
-        print(f"::group::{folder}")
-
-        try:
+        with gha_group(folder):
             if not check_required_files(folder):
                 failed.append(folder)
                 continue
@@ -658,11 +656,8 @@ def force_build(args: argparse.Namespace) -> int:
                 failed.append(folder)
                 continue
 
-        finally:
-            print("::endgroup::")
-
     if len(failed) != 0:
-        gh_error(f"The following images failed to build: {', '.join(failed)}")
+        gha_error(f"The following images failed to build: {', '.join(failed)}")
         return 1
 
     print("Successfully built all images!")
