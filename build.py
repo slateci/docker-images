@@ -12,15 +12,17 @@ This script assumes the following:
 
 import argparse
 import datetime
+import json
 import re
 import subprocess
 from contextlib import contextmanager
 from functools import partial
-from os import path
+from os import getenv, path
 from pathlib import Path
 from sys import stderr, stdout
 from typing import Any, Dict, List, NamedTuple, Optional, Set, cast
 
+import requests
 import yaml
 
 try:
@@ -130,22 +132,68 @@ def get_build_folders() -> Set[str]:
         return set(f.read().splitlines())
 
 
-def get_changed_folders(from_commit: str, to_commit: str) -> Set[str]:
+def get_changed_folders(from_commit: str, to_commit: str) -> Optional[Set[str]]:
+    """Returns a set of folder names that have changes between the given
+    commits."""
     folders = get_build_folders()
 
-    # Get the list of folders that have changes from the last commit.
-    # This is necessary as GHA push events could include multiple commits, thus
+    # Git pushes can include multiple commits, thus
     # `git diff --name-only HEAD` is insufficient.
     git_diff = subprocess.run(
         ["git", "diff", "--name-only", f"{from_commit}..{to_commit}"],
         capture_output=True,
     )
 
+    # git diff could have failed for a number of reasons:
+    # 1. We have a shallow repo clone (default for Github Actions)
+    # 2. We force pushed likely causing from_commit to become orphaned.
+    #    Orphaned commits are not pulled down during git fetch / git pull, thus
+    #    git diff may not have a record of that commit.
+    #
+    # Github should have the commits (orphaned or not, Github doesn't
+    # aggressively GC orphaned commits), thus we can query Github directly for
+    # the diff information.
+    if git_diff.returncode != 0:
+        print("git diff failed locally, trying diff with Github API...")
+
+        github_token = getenv("GITHUB_TOKEN")
+        if github_token is None:
+            gha_error("Environmental variable GITHUB_TOKEN is not set!")
+            return None
+
+        compare_endpoint = getenv("GITHUB_COMPARE_ENDPOINT")
+        if compare_endpoint is None:
+            gha_error("Environmental variable GITHUB_COMPARE_ENDPOINT is not set!")
+            return None
+
+        r = requests.get(
+            compare_endpoint.format(base=from_commit, head=to_commit),
+            # Username isn't required for personal access token.
+            auth=("", github_token),
+        )
+
+        if r.status_code != 200:
+            gha_error("Failed to query Github for compare info: " + r.text)
+            return None
+
+        try:
+            payload = json.loads(r.text)
+        except json.JSONDecodeError as e:
+            gha_error("Failed to convert payload to JSON: " + str(e))
+            return None
+
+        if "files" not in payload:
+            gha_error("Did not find files field in payload!")
+            return None
+
+        folder_list = set(map(lambda x: x["filename"].split("/")[0], payload["files"]))
+    else:
+        folder_list = set(
+            map(lambda x: x.split("/")[0], git_diff.stdout.decode().splitlines())
+        )
+
     # Return only the folders we care about using set AND.
-    return (
-        set(map(lambda x: x.split("/")[0], git_diff.stdout.decode().splitlines()))
-        & folders
-    )
+    return folder_list & folders
 
 
 def parse_folders_args(args: argparse.Namespace) -> Set[str]:
@@ -687,7 +735,9 @@ pipeline_p = subparsers.add_parser(
         "The latter two will expand to each tag in the list.\n"
         "Ex: if name = 'foobar' and tags = ['latest', 'latest3'] then `--push-tags ghcr.io/slateci/{name}:{tags[]}` will push the tags 'ghcr.io/slateci/foobar:latest' and 'ghcr.io/slateci/foobar:latest3'.\n\n"
         "dockle performs basic vuln checks on the Docker image. "
-        "trivy performs sophisticated vuln checks on the Docker image using vulnerability databases. "
+        "trivy performs sophisticated vuln checks on the Docker image using vulnerability databases. \n\n"
+        "`git diff` will first be used to diff between from_commit and to_commit. "
+        "In the event `git diff` fails (e.g. if from_commit doesn't exist locally), the Github API will be used with $GITHUB_TOKEN and $GITHUB_COMPARE_ENDPOINT (which should be of the form https://api.github.com/repos/{owner}/{repo}/compare/{base}...{head} where {base} and {head} are left as is but the rest are filled in)."
     ),
     formatter_class=argparse.RawDescriptionHelpFormatter,
     help="Lint, build, and push/save folders that have changed between specified commits",
@@ -819,7 +869,12 @@ force_build_p.set_defaults(func=force_build)
 
 get_changed_p = subparsers.add_parser(
     "get-changed",
-    description="Get a new-line delimited list of folders that have changed between commits",
+    description=(
+        "Get a new-line delimited list of folders that have changed between commits. \n\n"
+        "`git diff` will first be used to diff between from_commit and to_commit. "
+        "In the event `git diff` fails (e.g. if from_commit doesn't exist locally), the Github API will be used with $GITHUB_TOKEN and $GITHUB_COMPARE_ENDPOINT (which should be of the form https://api.github.com/repos/{owner}/{repo}/compare/{base}...{head} where {base} and {head} are left as is but the rest are filled in)."
+    ),
+    formatter_class=argparse.RawDescriptionHelpFormatter,
     help="Get a list of folders that have changed between commits.",
 )
 get_changed_p.add_argument(

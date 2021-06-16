@@ -15,19 +15,6 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v2
 
-      - name: Fetch commit history until ${{ github.event.before }}
-        run: |
-          i=1
-          until git show ${{ github.event.before }} &> /dev/null
-          do
-            if [[ $i -gt 100 ]]; then
-              break
-            fi
-
-            i=$((i+5))
-            git fetch --depth=$i
-          done
-
       - name: Authenticate with Github container registry
         run: echo '${{ secrets.GITHUB_TOKEN }}' | docker login https://ghcr.io -u $GITHUB_ACTOR --password-stdin
 
@@ -71,6 +58,9 @@ jobs:
           --check-existence 'ghcr.io/slateci/{name}:{version}' 'hub.opensciencegrid.org/slate/{name}:{version}' \
           --cache-from 'ghcr.io/slateci/{name}:{tags[]}' \
           --push-tags 'ghcr.io/slateci/{name}:{version}' 'ghcr.io/slateci/{name}:{tags[]}' 'hub.opensciencegrid.org/slate/{name}:{version}'  'hub.opensciencegrid.org/slate/{name}:{tags[]}'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_COMPARE_ENDPOINT: ${{ github.event.repository.compare_url }}
 
       - name: Notify Slack of Failure
         if: failure()

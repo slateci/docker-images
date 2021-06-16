@@ -22,19 +22,6 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v2
 
-      - name: Fetch commit history until ${{ github.event.pull_request.base.sha }}
-        run: |
-          i=1
-          until git show ${{ github.event.pull_request.base.sha }} &> /dev/null
-          do
-            if [[ $i -gt 100 ]]; then
-              break
-            fi
-
-            i=$((i+5))
-            git fetch --depth=$i
-          done
-
       - name: Install dockle
         run: |
           VERSION=$(
@@ -66,11 +53,14 @@ jobs:
 
       - name: Run build.py
         run: |
-          ./build.py pipeline ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} \
+          ./build.py pipeline ${{ github.event.pull_request.base.label }} ${{ github.event.pull_request.head.label }} \
           --save-images-to '_save/images.tar' \
           --check-existence 'ghcr.io/slateci/{name}:{version}' 'hub.opensciencegrid.org/slate/{name}:{version}' \
           --cache-from 'ghcr.io/slateci/{name}:{tags[]}' 'ghcr.io/slateci/{name}:PR-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.ref }}' \
           --save-tags 'ghcr.io/slateci/{name}:PR-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.ref }}'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_COMPARE_ENDPOINT: ${{ github.event.repository.compare_url }}
 
       - name: Save PR Number
         run: |
