@@ -12,6 +12,8 @@ on:
         description: 'This is a potentially destructive operation (see README). Type "CONFIRM" to acknowledge the risks.'
         required: True
 
+concurrency: push_to_stable
+
 jobs:
   main:
     runs-on: ubuntu-latest
