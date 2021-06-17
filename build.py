@@ -166,27 +166,34 @@ def get_changed_folders(from_commit: str, to_commit: str) -> Optional[Set[str]]:
             gha_error("Environmental variable GITHUB_COMPARE_ENDPOINT is not set!")
             return None
 
-        r = requests.get(
-            compare_endpoint.format(base=from_commit, head=to_commit),
-            # Username isn't required for personal access token.
-            auth=("", github_token),
-        )
+        # Github compare will return different files depending on the order of
+        # commits due to how it does ancestor search. Check both orders for a
+        # more complete view of the diff.
+        folder_list = set()
+        for base, head in [(from_commit, to_commit), (to_commit, from_commit)]:
+            r = requests.get(
+                compare_endpoint.format(base=base, head=head),
+                # Username isn't required for personal access token.
+                auth=("", github_token),
+            )
 
-        if r.status_code != 200:
-            gha_error("Failed to query Github for compare info: " + r.text)
-            return None
+            if r.status_code != 200:
+                gha_error("Failed to query Github for compare info: " + r.text)
+                return None
 
-        try:
-            payload = json.loads(r.text)
-        except json.JSONDecodeError as e:
-            gha_error("Failed to convert payload to JSON: " + str(e))
-            return None
+            try:
+                payload = json.loads(r.text)
+            except json.JSONDecodeError as e:
+                gha_error("Failed to convert payload to JSON: " + str(e))
+                return None
 
-        if "files" not in payload:
-            gha_error("Did not find files field in payload!")
-            return None
+            if "files" not in payload:
+                gha_error("Did not find files field in payload!")
+                return None
 
-        folder_list = set(map(lambda x: x["filename"].split("/")[0], payload["files"]))
+            folder_list |= set(
+                map(lambda x: x["filename"].split("/")[0], payload["files"])
+            )
     else:
         folder_list = set(
             map(lambda x: x.split("/")[0], git_diff.stdout.decode().splitlines())
@@ -310,7 +317,8 @@ def get_metadata(folder: str) -> Optional[Metadata]:
 
 
 def populate_claimed_tags(folders: Set[str]) -> Dict[str, str]:
-    """Populate claimed_tags with tags from folders that have not changed."""
+    """Populate claimed_tags with tags from folders that have not changed,
+    used to sanity check that two folders don't use the same tag."""
     # disable gh_error temporarily to ignore folder errors
     with disable_gha_printing():
         claimed_tags: Dict[str, str] = {}
@@ -584,6 +592,9 @@ def pipeline(args: argparse.Namespace) -> int:
 
     changed_folders = get_changed_folders(args.from_commit, args.to_commit)
 
+    if changed_folders is None:
+        return 1
+
     print(f"Detected changes in folders: {', '.join(changed_folders)}")
 
     failed = []
@@ -714,6 +725,9 @@ def force_build(args: argparse.Namespace) -> int:
 
 def get_changed(args: argparse.Namespace) -> int:
     changed_folders = get_changed_folders(args.from_commit, args.to_commit)
+
+    if changed_folders is None:
+        return 1
 
     print("\n".join(changed_folders))
     return 0
