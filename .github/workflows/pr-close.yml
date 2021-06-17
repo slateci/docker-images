@@ -21,7 +21,7 @@ jobs:
         id: folders
         shell: bash
         run: |
-          echo "::set-output name=folders::$(build.py get-changed ${{ github.event.pull_request.base.label }} ${{ github.event.pull_request.head.label }})"
+          echo "::set-output name=folders::$(build.py get-changed ${{ github.event.pull_request.base.user.login }}:${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.user.login }}:${{ github.event.pull_request.head.sha }})"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_COMPARE_ENDPOINT: ${{ github.event.repository.compare_url }}

@@ -53,7 +53,7 @@ jobs:
 
       - name: Run build.py
         run: |
-          ./build.py pipeline ${{ github.event.pull_request.base.label }} ${{ github.event.pull_request.head.label }} \
+          ./build.py pipeline ${{ github.event.pull_request.base.user.login }}:${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.user.login }}:${{ github.event.pull_request.head.sha }} \
           --save-images-to '_save/images.tar' \
           --check-existence 'ghcr.io/slateci/{name}:{version}' 'hub.opensciencegrid.org/slate/{name}:{version}' \
           --cache-from 'ghcr.io/slateci/{name}:{tags[]}' 'ghcr.io/slateci/{name}:PR-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.ref }}' \
