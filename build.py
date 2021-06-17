@@ -192,7 +192,7 @@ def get_changed_folders(from_commit: str, to_commit: str) -> Optional[Set[str]]:
                 return None
 
             folder_list |= set(
-                map(lambda x: x["filename"].split("/")[0], payload["files"])
+                map(lambda x: Path(x["filename"]).parts[0], payload["files"])
             )
     else:
         folder_list = set(
