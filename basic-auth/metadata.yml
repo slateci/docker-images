@@ -1,5 +1,5 @@
 name: basic-auth
-version: 1.0.14
+version: 1.0.17
 
 description: This is generalized container meant to support basic Authentication and SSH through SSSD integration to AD/Kerberos/LDAP.
 maintainer:
