@@ -1,0 +1,9 @@
+name: python-chromedriver-selenium
+version: 1.0.0
+
+description: This is generalized container meant to support Selenium Python bindings and chromedriver.
+maintainer:
+usage:
+url:
+
+tags: ['3.9-alpine']
