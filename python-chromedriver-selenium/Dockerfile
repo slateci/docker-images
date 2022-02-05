@@ -1,6 +1,9 @@
 # syntax=docker/dockerfile:1
 FROM joyzoursky/python-chromedriver:3.9-alpine-selenium
 
+# Docker container environmental variables:
+ENV SCREENSHOTS=1
+
 # Install Python dependencies:
 COPY ./requirements.txt ./
 RUN pip3 install -r ./requirements.txt && \
