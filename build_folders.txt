@@ -13,3 +13,4 @@ mariadb
 minio
 open-ondemand
 perfsonar-checker
+python-chromedriver-selenium
