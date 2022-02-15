@@ -588,7 +588,7 @@ def save_tags(save_to: str, tags: List[str]) -> bool:
 ### Main Functions ###
 def pipeline(args: argparse.Namespace) -> int:
     # For debugging argparse.
-    # print("Calling 'build.py pipeline' with args: " + str(args))
+    print("Calling 'build.py pipeline' with args: " + str(args))
 
     changed_folders = get_changed_folders(args.from_commit, args.to_commit)
 
