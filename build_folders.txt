@@ -11,6 +11,7 @@ gridftp
 jupyter-condor
 mariadb
 minio
+minislate
 open-ondemand
 perfsonar-checker
 python-chromedriver-selenium
