@@ -11,7 +11,7 @@ $ docker run -it hub.opensciencegrid.org/slate/python-chromedriver-selenium:3.9-
 
 ## Image Includes
 
-* Python (Alpine-based)
+* Python (Debian-based)
 * Google Chrome
 * Chromedriver
 * Selenium
