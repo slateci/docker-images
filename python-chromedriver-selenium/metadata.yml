@@ -1,5 +1,5 @@
 name: python-chromedriver-selenium
-version: 1.0.0
+version: 1.0.1
 
 description: This is generalized container meant to support Selenium Python bindings and chromedriver.
 maintainer:
