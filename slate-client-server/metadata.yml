@@ -1,0 +1,9 @@
+name: slate-client-server
+version: 1.0.0
+
+description: This is the container that pre-installs and builds all C++ dependencies into the file system of the resulting Centos7 image for the slateci/slate-client-server project.
+maintainer:
+usage:
+url: https://github.com/slateci/slate-client-server
+
+tags: ['latest']
