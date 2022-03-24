@@ -63,6 +63,9 @@ Alternatively run a shell in the container and execute `make` yourself:
 * yaml-cpp-devel
 * zlib-devel
 * AWS SDK C++
+* Docker environmental variables:
+  * `DEBUG`
+    * Default value is `False`
 * Docker image arguments:
   * `awssdkversion`
     * Default value is `'1.7.345'`

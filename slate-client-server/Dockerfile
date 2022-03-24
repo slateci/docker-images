@@ -44,7 +44,6 @@ ARG awssdkversion
 
 # Docker container environmental variables:
 ENV DEBUG=False
-ENV CMAKE_OPTS="-DBUILD_CLIENT=True -DBUILD_SERVER=True -DBUILD_SERVER_TESTS=True -DSTATIC_CLIENT=False"
 
 # Set up custom yum repos:
 COPY ./resources/kubernetes.repo /etc/yum.repos.d/kubernetes.repo
@@ -61,21 +60,8 @@ RUN yum install boost-devel \
     yaml-cpp-devel \
     zlib-devel -y
 
-# Prepare entrypoint:
-COPY ./docker-entrypoint.sh ./
-RUN chmod +x ./docker-entrypoint.sh
-
 # Install AWS C++ SDK
 COPY --from=build-stage /aws-sdk-cpp-${awssdkversion} /aws-sdk-cpp-${awssdkversion}
 COPY --from=build-stage /build /build
 RUN cd ./build && \
     make install
-
-# Change working directory:
-WORKDIR /work
-
-# Volumes
-VOLUME [ "/work" ]
-
-# Run once the container has started:
-ENTRYPOINT [ "/docker-entrypoint.sh" ]
