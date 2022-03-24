@@ -57,6 +57,7 @@ RUN yum install boost-devel \
     kubectl \
     make \
     openssl-devel \
+    perl-Digest-SHA \
     yaml-cpp-devel \
     zlib-devel -y
 
