@@ -7,7 +7,12 @@ This is the container that pre-installs and builds all C++ dependencies into the
 Generate build artifacts in a project's `build/` directory using the `cmake` options described above:
 
 ```shell
-[your@localmachine]$ docker run -it -v <project-dir>:/work:Z --env CMAKE_OPTS="-DBUILD_CLIENT=False -DBUILD_SERVER=True -DBUILD_SERVER_TESTS=True -DSTATIC_CLIENT=False" hub.opensciencegrid.org/slate/slate-client-server:1.0.0
+[your@localmachine]$ docker run -it -v ${PWD}:/work:Z hub.opensciencegrid.org/slate/slate-client-server:1.0.0
+[root@454344d8c4ca build]# cd /work/build
+[root@454344d8c4ca build]# cmake3 .. -DBUILD_CLIENT=False -DBUILD_SERVER=True -DBUILD_SERVER_TESTS=True -DSTATIC_CLIENT=False
+...
+...
+[root@454344d8c4ca build]# make
 Building the slate server...
 CMake Warning (dev) in CMakeLists.txt:
   No project() command is present.  The top-level CMakeLists.txt file must
@@ -41,15 +46,6 @@ Scanning dependencies of target slate-server
 [ 99%] Building CXX object CMakeFiles/test-instance-deletion.dir/test/TestInstanceDeletion.cpp.o
 [100%] Linking CXX executable tests/test-instance-deletion
 [100%] Built target test-instance-deletion
-```
-
-Alternatively run a shell in the container and execute `make` yourself:
-
-```shell
-[your@localmachine]$ docker run -it -v ${PWD}:/work:Z --env CMAKE_OPTS="-DBUILD_CLIENT=False -DBUILD_SERVER=True -DBUILD_SERVER_TESTS=True -DSTATIC_CLIENT=False" slate-client-server:maker bash
-[root@454344d8c4ca build]# make
-...
-...
 ```
 ## Image Includes
 
