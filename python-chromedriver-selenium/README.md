@@ -5,7 +5,7 @@ This is generalized container meant to support Selenium Python bindings and Chro
 ## Quick Try
 
 ```shell
-$ docker run -it hub.opensciencegrid.org/slate/python-chromedriver-selenium:3.9-debian sh
+$ docker run -it hub.opensciencegrid.org/slate/python-chromedriver-selenium:3.9-alpine sh
 /opt/project # 
 ```
 

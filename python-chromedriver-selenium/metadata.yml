@@ -6,4 +6,4 @@ maintainer:
 usage:
 url:
 
-tags: ['3.9-debian']
+tags: ['3.9-alpine']
