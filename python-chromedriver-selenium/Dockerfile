@@ -5,8 +5,8 @@ FROM joyzoursky/python-chromedriver:3.9-alpine-selenium
 ENV SCREENSHOTS=1
 
 # Package installs/updates:
-RUN apt-get install git \
-    which -y
+RUN apk add git \
+    which -f
 
 # Install Python dependencies:
 COPY ./requirements.txt ./
