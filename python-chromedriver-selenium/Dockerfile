@@ -4,6 +4,10 @@ FROM joyzoursky/python-chromedriver:3.9-alpine-selenium
 # Docker container environmental variables:
 ENV SCREENSHOTS=1
 
+# Package installs/updates:
+RUN yum install git \
+    which -y
+
 # Install Python dependencies:
 COPY ./requirements.txt ./
 RUN pip3 install -r ./requirements.txt && \
