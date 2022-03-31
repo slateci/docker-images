@@ -7,7 +7,7 @@ This is the container that pre-installs and builds all C++ dependencies into the
 Generate build artifacts in a project's `build/` directory using the `cmake` options described above:
 
 ```shell
-[your@localmachine]$ docker run -it -v ${PWD}:/work:Z hub.opensciencegrid.org/slate/slate-client-server:1.0.0
+[your@localmachine]$ docker run -it -v ${PWD}:/work:Z hub.opensciencegrid.org/slate/slate-client-server:1.0.1
 [root@454344d8c4ca build]# cd /work/build
 [root@454344d8c4ca build]# cmake3 .. -DBUILD_CLIENT=False -DBUILD_SERVER=True -DBUILD_SERVER_TESTS=True -DSTATIC_CLIENT=False
 ...

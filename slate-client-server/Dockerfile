@@ -59,7 +59,8 @@ RUN yum install boost-devel \
     openssl-devel \
     perl-Digest-SHA \
     yaml-cpp-devel \
-    zlib-devel -y
+    zlib-devel -y \
+RUN yum clean all && rm -rf /var/cache/yum
 
 # Install AWS C++ SDK
 COPY --from=build-stage /aws-sdk-cpp-${awssdkversion} /aws-sdk-cpp-${awssdkversion}
