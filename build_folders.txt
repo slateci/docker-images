@@ -15,3 +15,4 @@ minislate
 open-ondemand
 perfsonar-checker
 python-chromedriver-selenium
+slate-client-server
