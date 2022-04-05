@@ -49,22 +49,27 @@ Scanning dependencies of target slate-server
 ```
 ## Image Includes
 
+* AWS SDK C++
 * boost-devel
 * cmake3
 * gcc-c++.x86_64
-* git
+* Helm3
 * libcurl-devel
+* kubectl
 * make
 * openssl-devel
+* perl-Digest-SHA
+* unzip
+* which
 * yaml-cpp-devel
 * zlib-devel
-* AWS SDK C++
-* Docker environmental variables:
-  * `DEBUG`
-    * Default value is `False`
 * Docker image arguments:
   * `awssdkversion`
-    * Default value is `'1.7.345'`
+    * Default value is `1.7.345`
+  * `helmversion`
+    * Default value is `3.8.1`
+  * `kubectlversion`
+    * Default value is `1.21.11` 
 
 ## Examples
 
