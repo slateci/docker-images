@@ -31,7 +31,7 @@ $ docker run -it hub.opensciencegrid.org/slate/python-chromedriver-selenium:3.9-
 1. Change to a directory containing Selenium tests.
 1. Run `main.py` in the container:
    ```shell
-   docker run -it -v $PWD:/opt/project hub.opensciencegrid.org/slate/python-chromedriver-selenium:3.9-alpine python main.py
+   docker run -it -v $PWD:/opt/project --network="host" hub.opensciencegrid.org/slate/python-chromedriver-selenium:3.9-alpine python main.py
    ```
 
 ### Run Selenium test in GitHub action
