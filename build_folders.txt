@@ -4,7 +4,6 @@ condor-manager
 condor-submit
 condor-worker
 container-login-node
-container-slate-api
 fts3
 globus-connect-v4
 gridftp
