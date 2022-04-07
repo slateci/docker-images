@@ -495,11 +495,11 @@ def build_folder(
 
 
 ### Scan for Vulnerabilities ###
-def dockle_scan(tag: str, fail_level: str) -> bool:
+def dockle_scan(folder:str, tag: str, fail_level: str) -> bool:
     print(">>>> Dockle Scan <<<<")
 
     scan_output = subprocess.run(
-        ["dockle", "--exit-code", "1", "--exit-level", fail_level.lower(), tag]
+        ["dockle", "--exit-code", "1", "--exit-level", fail_level.lower(), tag], cwd=folder
     )
 
     if scan_output.returncode != 0:
@@ -511,11 +511,11 @@ def dockle_scan(tag: str, fail_level: str) -> bool:
     return True
 
 
-def trivy_scan(tag: str, fail_level: str) -> bool:
+def trivy_scan(folder:str, tag: str, fail_level: str) -> bool:
     print(">>>> Trivy Scan <<<<")
 
     scan_output = subprocess.run(
-        ["trivy", "i", "--ignore-unfixed", "--light", tag], capture_output=True
+        ["trivy", "i", "--ignore-unfixed", "--light", tag], capture_output=True, cwd=folder
     )
 
     scan_stdout = scan_output.stdout.decode().strip()
@@ -630,8 +630,8 @@ def pipeline(args: argparse.Namespace) -> int:
                     tags.build,
                     tags.cache,
                 )
-                and dockle_scan(tags.local, args.dockle_fail_level)
-                and trivy_scan(tags.local, args.trivy_fail_level)
+                and dockle_scan(folder, tags.local, args.dockle_fail_level )
+                and trivy_scan(folder, tags.local, args.trivy_fail_level)
                 and (
                     save_tags(args.save_images_to, tags.save)
                     if args.save_tags

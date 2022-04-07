@@ -1,0 +1,7 @@
+# Checkpoint details: https://github.com/goodwithtech/dockle/blob/master/CHECKPOINT.md and https://www.cisecurity.org/benchmark/docker
+
+# Doesn't need HEALTHCHECK for onetime CLI tool
+CIS-DI-0006
+# dockle sometimes mounts and uses docker.sock
+CIS-DI-0001
+
