@@ -54,5 +54,8 @@ Increment the minor number of the `version` field in `metadata.yml`.
 ## Development
 Github Action files are stored in `.github/workflows`. The build script is located at `build.py`.
 
+## How can I skip specific vulnerabilities scan?
+We recommend fixing the vulnerabilities; however, you have a provision to skip scanning your docker image for specific vulnerabilities for any valid reason. You can add the vulnerability tag/tags that you want Trivy and Dockle to ignore in the .trivyignore and .dockleignore files, respectively. Refer example folder for more info.
+
 ## Todo
 1. Add Github Action cron job for checking image vulnerabilities.
