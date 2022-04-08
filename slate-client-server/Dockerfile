@@ -2,6 +2,8 @@
 
 # Docker image build arguments:
 ARG awssdkversion=1.7.345
+ARG helmversion=3.8.1
+ARG kubectlversion=1.21.11
 
 ######################################
 # Build Stage                        #
@@ -41,12 +43,11 @@ FROM centos:7 as final-stage
 
 # Docker image build arguments:
 ARG awssdkversion
-
-# Docker container environmental variables:
-ENV DEBUG=False
+ARG helmversion
+ARG kubectlversion
 
 # Set up custom yum repos:
-COPY ./resources/kubernetes.repo /etc/yum.repos.d/kubernetes.repo
+COPY ./resources/yum.repos.d/* /etc/yum.repos.d
 
 # Package installs/updates:
 RUN yum install epel-release -y
@@ -54,10 +55,12 @@ RUN yum install boost-devel \
     cmake3 \
     gcc-c++.x86_64 \
     libcurl-devel \
-    kubectl \
+    kubectl-${kubectlversion} \
     make \
     openssl-devel \
     perl-Digest-SHA \
+    unzip \
+    which \
     yaml-cpp-devel \
     zlib-devel -y \
 RUN yum clean all && rm -rf /var/cache/yum
@@ -67,3 +70,17 @@ COPY --from=build-stage /aws-sdk-cpp-${awssdkversion} /aws-sdk-cpp-${awssdkversi
 COPY --from=build-stage /build /build
 RUN cd ./build && \
     make install
+
+# Set up scripts:
+COPY ./scripts /tmp/scripts
+
+# Install AWS CLI (for debugging)
+RUN chmod +x /tmp/scripts/install-aws-cli.sh && \
+    . /tmp/scripts/install-aws-cli.sh
+
+# Install Helm3:
+RUN chmod +x /tmp/scripts/install-helm.sh && \
+    . /tmp/scripts/install-helm.sh ${helmversion}
+
+# Clean up scripts:
+RUN rm -rf /tmp/scripts
