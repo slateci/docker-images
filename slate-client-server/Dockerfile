@@ -3,6 +3,7 @@
 # Docker image build arguments:
 ARG awssdkversion=1.7.345
 ARG helmversion=3.8.1
+ARG javaversion=1.8.0
 ARG kubectlversion=1.21.11
 
 ######################################
@@ -19,6 +20,7 @@ RUN yum install boost-devel \
     cmake3 \
     gcc-c++.x86_64 \
     git \
+    java-${javaversion} \
     libcurl-devel \
     make \
     openssl-devel \
