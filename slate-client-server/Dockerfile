@@ -20,7 +20,6 @@ RUN yum install boost-devel \
     cmake3 \
     gcc-c++.x86_64 \
     git \
-    java-${javaversion} \
     libcurl-devel \
     make \
     openssl-devel \
@@ -57,6 +56,7 @@ RUN yum install boost-devel \
     cmake3 \
     gcc-c++.x86_64 \
     libcurl-devel \
+    java-${javaversion} \
     kubectl-${kubectlversion} \
     make \
     openssl-devel \
