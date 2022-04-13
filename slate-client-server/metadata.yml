@@ -1,5 +1,5 @@
 name: slate-client-server
-version: 1.0.6
+version: 1.0.7
 
 description: This is the container that pre-installs and builds all C++ dependencies, Helm3, and the AWS CLI into the file system of the resulting Centos7 image for the slateci/slate-client-server project.
 maintainer:
