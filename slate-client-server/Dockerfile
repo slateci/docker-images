@@ -45,6 +45,7 @@ FROM centos:7 as final-stage
 # Docker image build arguments:
 ARG awssdkversion
 ARG helmversion
+ARG javaversion
 ARG kubectlversion
 
 # Set up custom yum repos:
