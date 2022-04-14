@@ -2,6 +2,8 @@
 
 This is the container that pre-installs and builds all C++ dependencies into the file system of the resulting Centos7 image for the [slateci/slate-client-server/](https://github.com/slateci/slate-client-server) project.
 
+* The scripts used by this image are referenced in other projects such as the SLATE API Helm chart. Please develop with care.
+
 ## Quick Try
 
 Generate build artifacts in a project's `build/` directory using the `cmake` options described above:
