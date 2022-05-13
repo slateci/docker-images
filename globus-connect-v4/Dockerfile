@@ -1,4 +1,6 @@
 FROM centos:7
+LABEL maintainer lincolnb@uchicago.edu
+LABEL lastupdate 12-14-2020
 
 RUN yum update -y
 
@@ -8,7 +10,7 @@ RUN rpm --import https://downloads.globus.org/toolkit/gt6/stable/repo/rpm/RPM-GP
 RUN yum install globus-connect-server-repo-latest.noarch.rpm -y
 
 RUN yum install yum-plugin-priorities -y
-RUN yum install globus-connect-server supervisor -y
+RUN yum install globus-connect-server supervisor -y 
 
 COPY supervisord.conf /etc/supervisord.conf
 COPY supervisord_startup.sh /usr/local/bin/supervisord_startup.sh
