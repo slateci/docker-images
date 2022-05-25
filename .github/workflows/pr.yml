@@ -67,7 +67,7 @@ jobs:
           echo ${{ github.event.number }} > ./_save/NR
 
       - name: Save image artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: pr
           path: _save
