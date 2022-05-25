@@ -383,7 +383,7 @@ def lint_folder(folder: str, fail_level: str) -> bool:
     print(">>>> Lint Dockerfile <<<<")
 
     lint_output = subprocess.run(
-        ["hadolint", "--no-fail", "Dockerfile"], capture_output=True, cwd=folder
+        ["hadolint", "--no-fail", "--failure-threshold", "error", "Dockerfile"], capture_output=True, cwd=folder
     )
 
     lint_stdout = lint_output.stdout.decode().strip()
