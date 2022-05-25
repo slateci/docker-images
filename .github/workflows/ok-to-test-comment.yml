@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - name: Apply ok-to-test label if conditions are met
-        uses: actions/github-script@v4
+        uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.SLATECI_ROBOT_PAT }}
           script: |

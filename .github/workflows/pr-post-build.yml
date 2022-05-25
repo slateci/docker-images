@@ -19,7 +19,7 @@ jobs:
         run: echo '${{ secrets.OSG_HUB_ACCESS_TOKEN }}' | docker login https://hub.opensciencegrid.org -u '${{ secrets.OSG_HUB_USERNAME }}' --password-stdin
 
       - name: 'Download artifact'
-        uses: actions/github-script@v3.1.0
+        uses: actions/github-script@v6
         with:
           script: |
             var artifacts = await github.actions.listWorkflowRunArtifacts({
@@ -68,7 +68,7 @@ jobs:
           echo "::set-output name=TAGS::${tags}"
 
       - name: 'Comment on PR'
-        uses: actions/github-script@v3
+        uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |

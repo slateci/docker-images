@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Checkout base repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Get changed folders
         id: folders
@@ -27,7 +27,7 @@ jobs:
           GITHUB_COMPARE_ENDPOINT: ${{ github.event.repository.compare_url }}
 
       - name: Find and delete images associated with this PR
-        uses: actions/github-script@v4
+        uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.SLATECI_ROBOT_PAT }}
           script: |
