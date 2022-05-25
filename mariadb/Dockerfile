@@ -1,4 +1,5 @@
 FROM docker.io/bitnami/minideb:buster
+LABEL maintainer "Bitnami <containers@bitnami.com>"
 
 ENV BITNAMI_PKG_CHMOD="-R g+rwX" \
     HOME="/" \

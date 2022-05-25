@@ -3,11 +3,11 @@ condor-login
 condor-manager
 condor-submit
 condor-worker
-container-login-node
 fts3
 globus-connect-v4
 gridftp
 jupyter-condor
+login-node
 mariadb
 minio
 minislate
