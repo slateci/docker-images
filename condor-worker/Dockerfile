@@ -1,5 +1,4 @@
 FROM opensciencegrid/osg-wn:3.5-el7
-
 LABEL maintainer="Lincoln Bryant <lincolnb@uchicago.edu>"
 
 # another hack- we need to remove singularity and replace it with Igor's script
@@ -10,8 +9,8 @@ RUN yum remove -y singularity
 # libXt needed for some application
 # tcsh needed for fsurf
 # ATLAS needs unzip, gcc at least.
-RUN yum -y install --enablerepo=osg-upcoming condor \ 
-                   openssh-clients \ 
+RUN yum -y install --enablerepo=osg-upcoming condor \
+                   openssh-clients \
                    openssh-server \
                    libXt \
                    tcsh \
@@ -22,9 +21,9 @@ RUN yum -y install --enablerepo=osg-upcoming condor \
                    unzip && \
     yum install http://linuxsoft.cern.ch/wlcg/centos7/x86_64/wlcg-repo-1.0.0-1.el7.noarch.rpm -y && \
     yum install HEP_OSlibs -y && \
-    yum clean all
+    yum clean all && rm -rf /var/cache/yum
 
-ADD container-files /
+COPY container-files /
 RUN mkdir -p /var/lib/condor/credentials
 
 RUN curl -Ls https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/node-check/osgvo-node-advertise \

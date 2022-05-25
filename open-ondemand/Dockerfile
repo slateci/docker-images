@@ -1,6 +1,9 @@
 FROM centos:7
-RUN yum update -y && \
-    yum install -y epel-release && \
+
+# hadolint ignore=DL3031
+RUN yum update -y
+
+RUN yum install -y epel-release && \
     yum install -y supervisor centos-release-scl subscription-manager && \
     yum install -y wget openssh-server openssh-clients nfs-utils autofs
 
@@ -34,7 +37,13 @@ RUN rm -f /opt/rh/httpd24/root/etc/httpd/conf.d/auth_openidc.conf
 RUN mkdir -p /etc/ood/config/clusters.d
 RUN mkdir -p /opt/ood/linuxhost_adapter
 WORKDIR /opt/ood/linuxhost_adapter
+
+# hadolint ignore=DL3031
 RUN yum update -y
+
+# Clean up after yum:
+RUN yum clean all && rm -rf /var/cache/yum
+
 RUN mkdir -p /etc/ood/config/apps && mkdir -p /etc/ood/config/apps/shell
 COPY startup-apache.sh /opt/rh/httpd24/root/etc/httpd/conf.d/startup-apache.sh
 

@@ -1,15 +1,20 @@
 FROM opensciencegrid/software-base:fresh
-LABEL lastupdate=12-16-2020
+LABEL maintainer="Lincoln Bryant <lincolnb@uchicago.edu>"
 
+# hadolint ignore=DL3031
 RUN yum update -y
+
 RUN yum install osg-gridftp osg-ca-certs yum-plugin-priorities gfal2-all gfal2-util globus-proxy-utils -y
+
+# Clean up after yum:
+RUN yum clean all && rm -rf /var/cache/yum
 
 # Set up the users and host certificate
 COPY image-config/10-users.sh /etc/osg/image-config.d/
 COPY image-config/20-certificate.sh /etc/osg/image-config.d/
 
 # do the bad thing of overwriting the existing cron job for fetch-crl
-ADD fetch-crl /etc/cron.d/fetch-crl
+COPY fetch-crl /etc/cron.d/fetch-crl
 RUN chmod 644 /etc/cron.d/fetch-crl
 
 # We also copy in our own gridftp server launcher to overwrite the existing one

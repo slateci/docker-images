@@ -1,5 +1,4 @@
 FROM minio/minio:latest
-
 LABEL maintainer="MinIO Inc <dev@min.io>"
 
 COPY dockerscripts/docker-entrypoint.sh /usr/bin/

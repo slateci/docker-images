@@ -2,16 +2,23 @@ FROM opensciencegrid/software-base:fresh
 LABEL description="File Transfer Service from CERN"
 LABEL maintainer=lincolnb@uchicago.edu
 
+# hadolint ignore=DL3020
 ADD "http://fts-repo.web.cern.ch/fts-repo/fts3-prod-el7.repo" "/etc/yum.repos.d/"
+# hadolint ignore=DL3020
 #ADD "https://fts-repo.web.cern.ch/fts-repo/fts3-rc-el7.repo" "/etc/yum.repos.d/"
+# hadolint ignore=DL3020
 ADD "https://dmc-repo.web.cern.ch/dmc-repo/dmc-rc-el7.repo" "/etc/yum.repos.d/"
 #RUN /bin/sed -i '/^enabled=1/a priority=97' /etc/yum.repos.d/dmc-rc-el7.repo
+
 # Install OSG certificates
 RUN yum install -y osg-ca-certs
 # Install FTS + GFAL
 RUN yum install --disablerepo=osg --disablerepo=osg-testing -y gfal2-all gfal2-util fts-server fts-client fts-rest fts-monitoring fts-mysql fts-server-selinux fts-rest-selinux fts-monitoring-selinux fts-msg fts-infosys
 
-ADD fetch-crl /etc/cron.d/fetch-crl
+# Clean up after yum:
+RUN yum clean all && rm -rf /var/cache/yum
+
+COPY fetch-crl /etc/cron.d/fetch-crl
 RUN chmod 644 /etc/cron.d/fetch-crl
 
 # remove me when we can remove the old way how this chart works 

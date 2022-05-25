@@ -1,8 +1,9 @@
 FROM centos:7
 
-RUN \
-  yum update -y && \
-  yum install -y epel-release
+# hadolint ignore=DL3031
+RUN yum update -y
+
+RUN yum install -y epel-release
 
 RUN \
   yum install -y openssh-server pwgen supervisor authconfig
@@ -13,9 +14,9 @@ RUN yum install openssl -y \
 RUN \
   echo > /etc/sysconfig/i18n
 
-RUN \
-  yum clean all && rm -rf /tmp/yum*
+# Clean up after yum:
+RUN yum clean all && rm -rf /var/cache/yum
 
-ADD container-files /
+COPY container-files /
 
 ENTRYPOINT ["/config/bootstrap.sh"]
