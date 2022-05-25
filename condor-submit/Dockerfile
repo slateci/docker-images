@@ -1,6 +1,7 @@
 FROM opensciencegrid/software-base:fresh
-LABEL maintainer "Lincoln Bryant <lincolnb@uchicago.edu>"
+LABEL maintainer="Lincoln Bryant <lincolnb@uchicago.edu>"
 
+# hadolint ignore=DL3031
 RUN yum update -y && yum install -y epel-release
 
 # upcoming for tokens
@@ -39,9 +40,10 @@ RUN yum install -y --enablerepo=osg-upcoming \
   wget \ 
   curl
 
-RUN yum clean all && rm -rf /tmp/yum*
+# Clean up after yum:
+RUN yum clean all && rm -rf /var/cache/yum
 
-ADD container-files /
+COPY container-files /
 
 RUN authconfig --update --enablesssd --enablesssdauth --enablemkhomedir
 

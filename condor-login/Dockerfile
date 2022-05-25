@@ -1,6 +1,8 @@
 FROM opensciencegrid/osg-wn
+LABEL maintainer="Lincoln Bryant <lincolnb@uchicago.edu>"
 
-RUN yum update -y 
+# hadolint ignore=DL3031
+RUN yum update -y
  
 #RUN yum install -y epel-release
 
@@ -27,9 +29,10 @@ RUN yum -y install osg-flock
 # not sure what this does. can we remove it?
 RUN echo > /etc/sysconfig/i18n
 
-RUN yum clean all && rm -rf /tmp/yum*
+# Clean up after yum:
+RUN yum clean all && rm -rf /var/cache/yum
 
-ADD container-files /
+COPY container-files /
 
 RUN yum install -y openssh-clients \ 
   libXt \
@@ -50,6 +53,6 @@ RUN yum clean all
 
 COPY 10-base.conf /etc/condor/config.d/
 
-ADD fetch-crl /etc/cron.d/
+COPY fetch-crl /etc/cron.d/
 
 ENTRYPOINT ["/config/bootstrap.sh"]
