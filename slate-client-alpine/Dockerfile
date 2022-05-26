@@ -1,17 +1,16 @@
-# syntax=docker/dockerfile:1.4
-FROM alpine:3.16.0
+FROM alpine:3.10
+#FROM alpine:3.6
 
-# Package installs/updates:
-RUN apk add --no-cache \
-    boost-dev \
-    cmake \
-    curl-dev \
-    gcc \
-    g++ \
-    libgcc \
-    libstdc++ \
-    make \
-    musl-dev \
-    nghttp2 \
-    openssl-dev \
-    zlib-dev
+RUN apk update && \
+    apk upgrade && \
+    apk --update add \
+        gcc \
+        g++ \
+        build-base \
+        cmake \
+        bash \
+        libstdc++ \
+        curl-dev \
+        zlib-dev \
+        nghttp2-static && \
+    rm -rf /var/cache/apk/*
