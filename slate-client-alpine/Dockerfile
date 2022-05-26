@@ -1,12 +1,6 @@
 # syntax=docker/dockerfile:1.4
 FROM alpine:3.16.0
 
-# Docker image build arguments:
-ARG versionoverride="X.Y.Z"
-
-# Docker container environmental variables:
-ENV VERSION_OVERRIDE=${versionoverride}
-
 # Package installs/updates:
 RUN apk add --no-cache \
     boost-dev \
@@ -14,7 +8,10 @@ RUN apk add --no-cache \
     curl-dev \
     gcc \
     g++ \
+    libgcc \
+    libstdc++ \
     make \
     musl-dev \
+    nghttp2 \
     openssl-dev \
     zlib-dev

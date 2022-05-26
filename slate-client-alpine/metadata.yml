@@ -6,4 +6,4 @@ maintainer:
 usage:
 url: https://github.com/slateci/slate-client-server
 
-tags: ['alpine-3.16.0']
+tags: []
