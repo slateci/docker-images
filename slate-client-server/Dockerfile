@@ -1,52 +1,11 @@
 # syntax=docker/dockerfile:1
+FROM centos:7
 
 # Docker image build arguments:
 ARG awssdkversion=1.7.345
 ARG helmversion=3.8.1
 ARG javaversion=1.8.0
 ARG kubectlversion=1.21.11
-
-######################################
-# Build Stage                        #
-######################################
-FROM centos:7 as build-stage
-
-# Docker image build arguments:
-ARG awssdkversion
-
-# Package installs/updates:
-RUN yum install epel-release -y
-RUN yum install boost-devel \
-    cmake3 \
-    gcc-c++.x86_64 \
-    git \
-    libcurl-devel \
-    make \
-    openssl-devel \
-    yaml-cpp-devel \
-    zlib-devel -y
-
-# Download AWS C++ SDK
-RUN curl -LO https://github.com/aws/aws-sdk-cpp/archive/${awssdkversion}.tar.gz && \
-    tar xzf ${awssdkversion}.tar.gz
-
-# Change working directory:
-WORKDIR /build
-
-# Build AWS C++ SDK
-RUN cmake3 ../aws-sdk-cpp-${awssdkversion} -DBUILD_ONLY="dynamodb;route53" -DBUILD_SHARED_LIBS=Off && \
-    make
-
-#######################################
-## Final Stage                        #
-#######################################
-FROM centos:7 as final-stage
-
-# Docker image build arguments:
-ARG awssdkversion
-ARG helmversion
-ARG javaversion
-ARG kubectlversion
 
 # Set up custom yum repos:
 COPY ./resources/yum.repos.d/* /etc/yum.repos.d
@@ -69,10 +28,12 @@ RUN yum install boost-devel \
 RUN yum clean all && rm -rf /var/cache/yum
 
 # Install AWS C++ SDK
-COPY --from=build-stage /aws-sdk-cpp-${awssdkversion} /aws-sdk-cpp-${awssdkversion}
-COPY --from=build-stage /build /build
-RUN cd ./build && \
-    make install
+RUN  mkdir -p /__w/slate-client-server/slate-client-server/ && \
+     cd /__w/slate-client-server/slate-client-server/ && \
+     curl -fsSL https://slateci.io/slate-client-server/aws-cpp-sdk/centos7-${awssdkversion}.tar.gz -o centos7-${awssdkversion}.tar.gz && \
+     tar -zxf centos7-${awssdkversion}.tar.gz --directory . && \
+     cd ./aws/build && \
+     make install
 
 # Set up scripts:
 COPY ./scripts /tmp/scripts
