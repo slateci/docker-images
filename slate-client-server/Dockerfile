@@ -38,9 +38,14 @@ RUN  mkdir -p /__w/slate-client-server/slate-client-server/ && \
 # Set up scripts:
 COPY ./scripts /tmp/scripts
 
-# Install AWS CLI (for debugging)
+# Install AWS CLI (for debugging):
 RUN chmod +x /tmp/scripts/install-aws-cli.sh && \
     . /tmp/scripts/install-aws-cli.sh
+
+# Install DynamoDB (for testing):
+RUN chmod +x /tmp/scripts/install-dynamo.sh && \
+    mkdir /dynamodb && \
+    . /tmp/scripts/install-dynamo.sh /dynamodb
 
 # Install Helm3:
 RUN chmod +x /tmp/scripts/install-helm.sh && \
