@@ -42,6 +42,7 @@ jobs:
                 result = '\n'.join(build_folder_patterns)
               except Exception as ex:
                 raise ex
+            
             set_output('patterns', result)
             print("Found the following folders to check for modifications...")
             print(result)
@@ -63,15 +64,18 @@ jobs:
 #          echo ${{ steps.changed-files.outputs.modified_files }}
 
       - id: set-directories
-        name: Set up the matrix
+        name: Set directories
         uses: jannekem/run-python-script-action@v1
         with:
           script: |
             import json
 
             modified_dirs = "${{ steps.changed-files.outputs.modified_files }}"
-            split_data = modified_dirs.split()
-            set_output('directories', json.dumps(split_data))
+            result = json.dumps(modified_dirs.split())
+            
+            set_output('directories', result)
+            print("Found the following modified directories...")
+            print(result)
 
   test:
     name: Test
