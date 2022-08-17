@@ -53,7 +53,8 @@ jobs:
         uses: tj-actions/changed-files@v26.1
         with:
           dir_names: true
-          files: ${{ steps.build-folders.outputs.patterns }}
+          files: |
+            ${{ steps.build-folders.outputs.patterns }}
 
       - name: List all modified files
         run: |
