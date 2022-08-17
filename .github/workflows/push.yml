@@ -50,7 +50,7 @@ jobs:
 
       - name: Output check
         run: |-
-          echo "${{ steps.build-folders.outputs.patterns }}"
+          echo "${{ steps.build-folder-patterns.outputs.patterns }}"
 
       - id: changed-files
         name: Get changed directories
