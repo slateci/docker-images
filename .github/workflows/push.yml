@@ -47,7 +47,11 @@ jobs:
             set_output('patterns', result)
             print("Found the following folders to check...")
             print(result)
-            
+
+      - name: Output check
+        run: |-
+          echo "${{ steps.build-folders.outputs.patterns }}"
+
       - id: changed-files
         name: Get changed directories
         uses: tj-actions/changed-files@v26.1
