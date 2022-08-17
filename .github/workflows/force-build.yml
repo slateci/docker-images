@@ -24,9 +24,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Authenticate with Github container registry
-        run: echo '${{ secrets.GITHUB_TOKEN }}' | docker login https://ghcr.io -u $GITHUB_ACTOR --password-stdin
-
       - name: Authenticate with OSG Hub
         run: echo '${{ secrets.OSG_HUB_ACCESS_TOKEN }}' | docker login https://hub.opensciencegrid.org -u '${{ secrets.OSG_HUB_USERNAME }}' --password-stdin
 
@@ -39,13 +36,11 @@ jobs:
       - name: Run build.py force-build --all
         run: |
           ./build.py force-build --all \
-          --cache-from 'ghcr.io/slateci/{name}:{tags[]}' \
-          --push-tags 'ghcr.io/slateci/{name}:{version}' 'ghcr.io/slateci/{name}:{tags[]}' 'hub.opensciencegrid.org/slate/{name}:{version}'  'hub.opensciencegrid.org/slate/{name}:{tags[]}'
+          --push-tags 'hub.opensciencegrid.org/slate/{name}:{version}'  'hub.opensciencegrid.org/slate/{name}:{tags[]}'
         if: ${{ github.event.inputs.folders == 'ALL' }}
 
       - name: Run build.py force-build
         run: |
           ./build.py force-build ${{ github.event.inputs.folders }} \
-          --cache-from 'ghcr.io/slateci/{name}:{tags[]}' \
-          --push-tags 'ghcr.io/slateci/{name}:{version}' 'ghcr.io/slateci/{name}:{tags[]}' 'hub.opensciencegrid.org/slate/{name}:{version}'  'hub.opensciencegrid.org/slate/{name}:{tags[]}'
+          --push-tags 'hub.opensciencegrid.org/slate/{name}:{version}'  'hub.opensciencegrid.org/slate/{name}:{tags[]}'
         if: ${{ github.event.inputs.folders != 'ALL' }}

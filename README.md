@@ -33,7 +33,7 @@ The version listed in `metadata.yml` will be ignored, but PRs will still check f
 
 ## FAQ
 ### Where are containers pushed to?
-Containers are currently pushed to both 'ghcr.io/slateci' and 'hub.opensciencegrid.org/slate'.
+Containers are currently pushed to 'hub.opensciencegrid.org/slate'.
 Check the '--push-tags' flag in `.github/workflows/*` to verify.
 
 ### How do I trigger a lint job?

@@ -1,57 +1,61 @@
-name: PR - Delete Container Image
+# If this workflow is still desired it will need to be retooled for OSG Harbor.
 
-on:
-  # Ensure no PR code is ever run, this is dangerous with pull_request_target!
-  # https://securitylab.github.com/research/github-actions-preventing-pwn-requests/
-  pull_request_target:
-    types: ['unlabeled', 'closed', 'locked']
 
-jobs:
-  main:
-    runs-on: ubuntu-latest
-    if: |
-      ( (github.event.action == 'unlabeled' && github.event.label.name == 'ok-to-test') ||
-        (github.event.action != 'unlabeled' && contains(github.event.pull_request.labels.*.name, 'ok-to-test')))
 
-    steps:
-      - name: Checkout base repo
-        uses: actions/checkout@v3
-
-      - name: Get changed folders
-        id: folders
-        shell: bash
-        run: |
-          echo "::set-output name=folders::$(build.py get-changed ${{ github.event.pull_request.base.user.login }}:${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.user.login }}:${{ github.event.pull_request.head.sha }})"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_COMPARE_ENDPOINT: ${{ github.event.repository.compare_url }}
-
-      - name: Find and delete images associated with this PR
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.SLATECI_ROBOT_PAT }}
-          script: |
-            const tag = "PR-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.ref }}";
-
-            for (const folder_name of "${{ steps.folders.outputs.folders }}".split("\n")) {
-              github.paginate("GET /orgs/{org}/packages/{package_type}/{package_name}/versions", {
-                org: "slateci",
-                package_type: "container",
-                package_name: folder_name
-              }).then((images) => {
-                images.forEach((img) => {
-                  if (img.metadata.container.tags.includes(tag)) {
-                    console.log("Deleting " + folder_name + ":" + tag + " with package_version_id: " + img.id);
-
-                    github.request("DELETE /orgs/{org}/packages/{package_type}/{package_name}/versions/{package_version_id}", {
-                      org: "slateci",
-                      package_type: "container",
-                      package_name: folder_name,
-                      package_version_id: img.id
-                    }).then(() => {
-                      console.log("Deleted " + folder_name + ":" + tag + "!")
-                    });
-                  }
-                });
-              });
-            }
+#name: PR - Delete Container Image
+#
+#on:
+#  # Ensure no PR code is ever run, this is dangerous with pull_request_target!
+#  # https://securitylab.github.com/research/github-actions-preventing-pwn-requests/
+#  pull_request_target:
+#    types: ['unlabeled', 'closed', 'locked']
+#
+#jobs:
+#  main:
+#    runs-on: ubuntu-latest
+#    if: |
+#      ( (github.event.action == 'unlabeled' && github.event.label.name == 'ok-to-test') ||
+#        (github.event.action != 'unlabeled' && contains(github.event.pull_request.labels.*.name, 'ok-to-test')))
+#
+#    steps:
+#      - name: Checkout base repo
+#        uses: actions/checkout@v3
+#
+#      - name: Get changed folders
+#        id: folders
+#        shell: bash
+#        run: |
+#          echo "::set-output name=folders::$(build.py get-changed ${{ github.event.pull_request.base.user.login }}:${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.user.login }}:${{ github.event.pull_request.head.sha }})"
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          GITHUB_COMPARE_ENDPOINT: ${{ github.event.repository.compare_url }}
+#
+#      - name: Find and delete images associated with this PR
+#        uses: actions/github-script@v6
+#        with:
+#          github-token: ${{ secrets.SLATECI_ROBOT_PAT }}
+#          script: |
+#            const tag = "PR-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.ref }}";
+#
+#            for (const folder_name of "${{ steps.folders.outputs.folders }}".split("\n")) {
+#              github.paginate("GET /orgs/{org}/packages/{package_type}/{package_name}/versions", {
+#                org: "slateci",
+#                package_type: "container",
+#                package_name: folder_name
+#              }).then((images) => {
+#                images.forEach((img) => {
+#                  if (img.metadata.container.tags.includes(tag)) {
+#                    console.log("Deleting " + folder_name + ":" + tag + " with package_version_id: " + img.id);
+#
+#                    github.request("DELETE /orgs/{org}/packages/{package_type}/{package_name}/versions/{package_version_id}", {
+#                      org: "slateci",
+#                      package_type: "container",
+#                      package_name: folder_name,
+#                      package_version_id: img.id
+#                    }).then(() => {
+#                      console.log("Deleted " + folder_name + ":" + tag + "!")
+#                    });
+#                  }
+#                });
+#              });
+#            }

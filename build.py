@@ -747,7 +747,6 @@ pipeline_p = subparsers.add_parser(
         "Lint, build, and push/save folders that have changed between specified commits.\n\n"
         "Tag related flags can use {name}, {version}, and {tags[]}, as placeholders. "
         "The latter two will expand to each tag in the list.\n"
-        "Ex: if name = 'foobar' and tags = ['latest', 'latest3'] then `--push-tags ghcr.io/slateci/{name}:{tags[]}` will push the tags 'ghcr.io/slateci/foobar:latest' and 'ghcr.io/slateci/foobar:latest3'.\n\n"
         "dockle performs basic vuln checks on the Docker image. "
         "trivy performs sophisticated vuln checks on the Docker image using vulnerability databases. \n\n"
         "`git diff` will first be used to diff between from_commit and to_commit. "
@@ -842,7 +841,6 @@ force_build_p = subparsers.add_parser(
         "Force build and push/save specified folders (ignoring lint, version existence, and vulnerability errors).\n\n"
         "Tag related flags can use {name}, {version}, and {tags[]} as placeholders. "
         "The latter two will expand to each tag in the list.\n"
-        "Ex: if name = 'foobar' and tags = ['latest', 'latest3'] then `--push-tags ghcr.io/slateci/{name}:{tags[]}` will push the tags 'ghcr.io/slateci/foobar:latest' and 'ghcr.io/slateci/foobar:latest3'.\n\n"
     ),
     formatter_class=argparse.RawDescriptionHelpFormatter,
     help="Force build and push/save specified folders (ignoring lint, version existence, and vulnerability errors)",
