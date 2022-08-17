@@ -11,22 +11,36 @@ on:
 #      - stable
       - feature/43-retool-using-existing-github-marketplace-actions
 
+env:
+  PYTHON_VERSION: 3.9
+
 jobs:
   gather:
-    name: Gather Folders
+    name: Gather Info
     runs-on: ubuntu-20.04
 
     steps:
-      - name: XXXX
+      - name: Check out repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          path: ./checkout
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Build Folders
         uses: jannekem/run-python-script-action@v1
         with:
           script: |
             with open("./build_folders") as stream:
               try:
-                build_folders = set(f.read().splitlines()
+                build_folders = set(stream.read().splitlines())
               except Exception as ex:
                 raise ex
-            print(f"{str(build_folders)})
+            print(f"{str(build_folders)}")
 #
 #  build-push:
 #    name: Build/push images
