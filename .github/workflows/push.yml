@@ -52,9 +52,24 @@ jobs:
         name: Get changed directories
         uses: tj-actions/changed-files@v26.1
         with:
-          #dir_names: true
           files: |
-            ${{ steps.build-folders.outputs.patterns }}
+            basic-auth/**
+            condor-login/**
+            condor-manager/**
+            condor-submit/**
+            condor-worker/**
+            fts3/**
+            globus-connect-v4/**
+            gridftp/**
+            jupyter-condor/**
+            login-node/**
+            mariadb/**
+            minio/**
+            minislate/**
+            open-ondemand/**
+            perfsonar-checker/**
+            python-chromedriver-selenium/**
+            slate-client-server/**
 
       - name: List all modified files
         run: |
