@@ -7,8 +7,7 @@
 # The rest are optional fields.
 
 name:
-# Must follow semver notation (e.g. 1.0.3).
-version: 1.0.0
+version: 1.0.1 # Must follow semver notation (e.g. 1.0.3).
 description:
 maintainer:
 usage:
