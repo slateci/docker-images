@@ -82,6 +82,7 @@ jobs:
     runs-on: ubuntu-20.04
     needs:
       - gather
+    if: needs.gather.outputs.directories != []
     strategy:
       fail-fast: false
       matrix:
@@ -90,7 +91,9 @@ jobs:
     steps:
       - name: Test test test
         run: |-
-          echo "${{ matrix.directory }}"
+          echo "${{ needs.gather.outputs.directories }}"
+          echo "${{ fromJson(needs.gather.outputs.directories) }}"
+          #echo "${{ matrix.directory }}"
         
         
         
