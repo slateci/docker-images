@@ -82,7 +82,7 @@ jobs:
     runs-on: ubuntu-20.04
     needs:
       - gather
-    if: needs.gather.outputs.directories != []
+    if: ${{ needs.gather.outputs.directories != '[]' }}
     strategy:
       fail-fast: false
       matrix:
