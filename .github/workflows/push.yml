@@ -41,17 +41,25 @@ jobs:
               try:
                 build_folders = list(stream.read().splitlines())
                 build_folder_patterns = [folder + '/**' for folder in build_folders]
+                result = '\n'.join(build_folder_patterns)
               except Exception as ex:
                 raise ex
-            set_output('patterns', json.dumps(build_folder_patterns))
-            print(json.dumps(build_folder_patterns))
+            set_output('patterns', result)
+            print("Found the following folders to check...")
+            print(result)
             
       - id: changed-files
         name: Get changed directories
         uses: tj-actions/changed-files@v26.1
         with:
-          files: |
-            ${{ steps.build-folders.outputs.patterns }}
+          dir_names: true
+          #files: ${{ steps.build-folders.outputs.patterns }}
+
+      - name: List all modified files
+        run: |
+          for file in ${{ steps.changed-files.outputs.modified_files }}; do
+            echo "$file was added"
+          done
 
 #  test:
 #    name: Test
