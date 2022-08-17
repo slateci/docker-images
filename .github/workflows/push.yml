@@ -52,7 +52,7 @@ jobs:
         name: Get changed directories
         uses: tj-actions/changed-files@v26.1
         with:
-          dir_names: true
+          #dir_names: true
           files: |
             ${{ steps.build-folders.outputs.patterns }}
 
