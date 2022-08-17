@@ -3,9 +3,6 @@ concurrency:
   group: deploy-${{ github.repository }}
 
 on:
-#  pull_request:
-#    branches:
-#      - stable
   push:
     branches:
 #      - stable
@@ -18,29 +15,52 @@ jobs:
   gather:
     name: Gather Info
     runs-on: ubuntu-20.04
+#    outputs:
+#      matrix: ${{ steps.set-matrix.outputs.matrix }}
 
     steps:
       - name: Check out repo
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          path: ./checkout
+          path: .
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Build Folders
+      - id: build-folder-patterns
+        name: Build Folder Patterns
         uses: jannekem/run-python-script-action@v1
         with:
           script: |
-            with open("./build_folders") as stream:
+            import json
+            
+            with open("${{ github.workspace }}/build_folders.txt") as stream:
               try:
-                build_folders = set(stream.read().splitlines())
+                build_folders = list(stream.read().splitlines())
+                build_folder_patterns = [folder + '/**' for folder in build_folders]
               except Exception as ex:
                 raise ex
-            print(f"{str(build_folders)}")
+            set_output('patterns', json.dumps(build_folder_patterns))
+            print(json.dumps(build_folder_patterns))
+            
+      - id: changed-files
+        name: Get changed directories
+        uses: tj-actions/changed-files@v26.1
+        with:
+          files: |
+            ${{ steps.build-folders.outputs.patterns }}
+
+#  test:
+#    name: Test
+#    runs-on: ubuntu-20.04
+#    needs:
+#      - gather
+#    strategy:
+#      fail-fast: false
+#      matrix: ${{ fromJson(needs.gather.outputs.matrix) }}
 #
 #  build-push:
 #    name: Build/push images
