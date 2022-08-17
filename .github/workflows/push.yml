@@ -1,69 +1,112 @@
-name: Push to stable - Lint, Build, and Push Container Images
+name: "Build & push images"
+concurrency:
+  group: deploy-${{ github.repository }}
 
 on:
+#  pull_request:
+#    branches:
+#      - stable
   push:
     branches:
-      - stable
-
-concurrency: push_to_stable
+#      - stable
+      - feature/43-retool-using-existing-github-marketplace-actions
 
 jobs:
-  main:
-    runs-on: ubuntu-latest
+  gather:
+    name: Gather Folders
+    runs-on: ubuntu-20.04
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-
-      - name: Authenticate with OSG Hub
-        run: echo '${{ secrets.OSG_HUB_ACCESS_TOKEN }}' | docker login https://hub.opensciencegrid.org -u '${{ secrets.OSG_HUB_USERNAME }}' --password-stdin
-
-      - name: Install dockle
-        shell: bash
-        run: |
-          VERSION=$(
-           curl --silent "https://api.github.com/repos/goodwithtech/dockle/releases/latest" | \
-           grep '"tag_name":' | \
-           sed -E 's/.*"v([^"]+)".*/\1/' \
-          ) && curl -L -o dockle.deb https://github.com/goodwithtech/dockle/releases/download/v${VERSION}/dockle_${VERSION}_Linux-64bit.deb
-          sudo dpkg -i dockle.deb && rm dockle.deb
-
-      - name: Install trivy
-        run: |
-          sudo apt-get install wget apt-transport-https gnupg lsb-release
-          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
-          echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee -a /etc/apt/sources.list.d/trivy.list
-          sudo apt-get update
-          sudo apt-get install trivy
-
-      - name: Install hadolint
-        run: |
-          mkdir -p $GITHUB_WORKSPACE/bin
-          curl -L https://github.com/hadolint/hadolint/releases/download/v2.3.0/hadolint-Linux-x86_64 --output $GITHUB_WORKSPACE/bin/hadolint
-          echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
-          chmod +x $GITHUB_WORKSPACE/bin/hadolint
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      # - name: Install script dependencies
-      #   run: pip3 install pyyaml
-
-      - name: Run build.py
-        run: |
-          ./build.py pipeline ${{ github.event.before }} ${{ github.event.after }} \
-          --check-existence 'hub.opensciencegrid.org/slate/{name}:{version}' \
-          --push-tags 'hub.opensciencegrid.org/slate/{name}:{version}'  'hub.opensciencegrid.org/slate/{name}:{tags[]}'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_COMPARE_ENDPOINT: ${{ github.event.repository.compare_url }}
-
-      - name: Notify Slack of Failure
-        if: failure()
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
-        uses: voxmedia/github-action-slack-notify-build@v1
+      - name: XXXX
+        uses: jannekem/run-python-script-action@v1
         with:
-          channel: github-actions
-          status: FAILED
-          color: danger
+          script: |
+            with open("./build_folders") as stream:
+              try:
+                build_folders = set(f.read().splitlines()
+              except Exception as ex:
+                raise ex
+            print(f"{str(build_folders)})
+#
+#  build-push:
+#    name: Build/push images
+#    runs-on: ubuntu-20.04
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        include:
+#          -
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#jobs:
+#  main:
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - name: Checkout repo
+#        uses: actions/checkout@v3
+#
+#      - name: Authenticate with OSG Hub
+#        run: echo '${{ secrets.OSG_HUB_ACCESS_TOKEN }}' | docker login https://hub.opensciencegrid.org -u '${{ secrets.OSG_HUB_USERNAME }}' --password-stdin
+#
+#      - name: Install dockle
+#        shell: bash
+#        run: |
+#          VERSION=$(
+#           curl --silent "https://api.github.com/repos/goodwithtech/dockle/releases/latest" | \
+#           grep '"tag_name":' | \
+#           sed -E 's/.*"v([^"]+)".*/\1/' \
+#          ) && curl -L -o dockle.deb https://github.com/goodwithtech/dockle/releases/download/v${VERSION}/dockle_${VERSION}_Linux-64bit.deb
+#          sudo dpkg -i dockle.deb && rm dockle.deb
+#
+#      - name: Install trivy
+#        run: |
+#          sudo apt-get install wget apt-transport-https gnupg lsb-release
+#          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+#          echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee -a /etc/apt/sources.list.d/trivy.list
+#          sudo apt-get update
+#          sudo apt-get install trivy
+#
+#      - name: Install hadolint
+#        run: |
+#          mkdir -p $GITHUB_WORKSPACE/bin
+#          curl -L https://github.com/hadolint/hadolint/releases/download/v2.3.0/hadolint-Linux-x86_64 --output $GITHUB_WORKSPACE/bin/hadolint
+#          echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
+#          chmod +x $GITHUB_WORKSPACE/bin/hadolint
+#
+#      - name: Set up Docker Buildx
+#        uses: docker/setup-buildx-action@v2
+#
+#      # - name: Install script dependencies
+#      #   run: pip3 install pyyaml
+#
+#      - name: Run build.py
+#        run: |
+#          ./build.py pipeline ${{ github.event.before }} ${{ github.event.after }} \
+#          --check-existence 'hub.opensciencegrid.org/slate/{name}:{version}' \
+#          --push-tags 'hub.opensciencegrid.org/slate/{name}:{version}'  'hub.opensciencegrid.org/slate/{name}:{tags[]}'
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          GITHUB_COMPARE_ENDPOINT: ${{ github.event.repository.compare_url }}
+#
+#      - name: Notify Slack of Failure
+#        if: failure()
+#        env:
+#          SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
+#        uses: voxmedia/github-action-slack-notify-build@v1
+#        with:
+#          channel: github-actions
+#          status: FAILED
+#          color: danger
