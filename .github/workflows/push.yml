@@ -15,8 +15,8 @@ jobs:
   gather:
     name: Gather Info
     runs-on: ubuntu-20.04
-#    outputs:
-#      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    outputs:
+      directories: ${{ steps.set-directories.outputs.directories }}
 
     steps:
       - name: Check out repo
@@ -35,8 +35,6 @@ jobs:
         uses: jannekem/run-python-script-action@v1
         with:
           script: |
-            import json
-            
             with open("${{ github.workspace }}/build_folders.txt") as stream:
               try:
                 build_folders = list(stream.read().splitlines())
@@ -45,12 +43,8 @@ jobs:
               except Exception as ex:
                 raise ex
             set_output('patterns', result)
-            print("Found the following folders to check...")
+            print("Found the following folders to check for modifications...")
             print(result)
-
-      - name: Output check
-        run: |-
-          echo "${{ steps.build-folder-patterns.outputs.patterns }}"
 
       - id: changed-files
         name: Get changed directories
@@ -60,13 +54,45 @@ jobs:
           files: |
             ${{ steps.build-folder-patterns.outputs.patterns }}
 
-      - name: List all modified directories
-        run: |          
-          for file in ${{ steps.changed-files.outputs.modified_files }}; do
-            echo "$file was modified"
-          done
-          echo "And now in JSON format........................."
-          echo ${{ steps.changed-files.outputs.modified_files }}
+#      - name: List all modified directories
+#        run: |
+#          for file in ${{ steps.changed-files.outputs.modified_files }}; do
+#            echo "$file was modified"
+#          done
+#          echo "And now all together........................."
+#          echo ${{ steps.changed-files.outputs.modified_files }}
+
+      - id: set-directories
+        name: Set up the matrix
+        uses: jannekem/run-python-script-action@v1
+        with:
+          script: |
+            import json
+
+            modified_dirs = "${{ steps.changed-files.outputs.modified_files }}"
+            split_data = modified_dirs.split()
+            set_output('directories', json.dumps(split_data))
+
+  test:
+    name: Test
+    runs-on: ubuntu-20.04
+    needs:
+      - gather
+    strategy:
+      fail-fast: false
+      matrix:
+        directory: ${{ fromJson(needs.gather.outputs.directories) }}
+
+    steps:
+      - name: Test test test
+        run: |-
+          echo "${{ matrix.directory }}"
+        
+        
+        
+        
+        
+        
 
 #  test:
 #    name: Test
