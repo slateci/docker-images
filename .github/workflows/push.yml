@@ -52,6 +52,7 @@ jobs:
         name: Get changed directories
         uses: tj-actions/changed-files@v26.1
         with:
+          dir_names: true
           files: |
             basic-auth/**
             condor-login/**
@@ -76,7 +77,6 @@ jobs:
           for file in ${{ steps.changed-files.outputs.modified_files }}; do
             echo "$file was modified"
           done
-
 
 #  test:
 #    name: Test
