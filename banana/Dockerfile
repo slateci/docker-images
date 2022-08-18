@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM hello-world:latest
+FROM joyzoursky/python-chromedriver:3.9-alpine-selenium
 
 # Labels
 LABEL io.slateci.image.name="banana"

@@ -65,7 +65,8 @@ jobs:
             added_dirs = "${{ steps.changed-files.outputs.added_files }}".split()
             modified_dirs = "${{ steps.changed-files.outputs.modified_files }}".split()
             dirs = added_dirs + modified_dirs
-            result = json.dumps(dirs)
+            unique_dirs = [*set(dirs)]
+            result = json.dumps(unique_dirs)
             
             set_output('directories', result)
             print("Found the following modified directories...")
@@ -111,17 +112,18 @@ jobs:
           load: true
           tags: ${{ env.LOCAL_IMAGE_TAG }}
 
-      - name: Lint with Dockle
-        uses: hands-lab/dockle-action@v1
-        with:
-          image: ${{ env.LOCAL_IMAGE_TAG }}
-          exit-code: '1'
-          exit-level: FATAL
+#      - name: Lint with Dockle
+#        uses: hands-lab/dockle-action@v1
+#        with:
+#          image: ${{ env.LOCAL_IMAGE_TAG }}
+#          exit-code: '1'
+#          exit-level: FATAL
 
       - name: Scan with Trivy
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: ${{ env.LOCAL_IMAGE_TAG }}
+          trivyignores: "./${{ matrix.directory }}/.trivyignore"
           format: 'table'
           exit-code: '0'
           ignore-unfixed: true
