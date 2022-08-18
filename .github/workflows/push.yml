@@ -1,6 +1,6 @@
 name: "Build & push images"
 concurrency:
-  group: deploy-${{ github.repository }}
+  group: bpi-${{ github.repository }}
 
 on:
   push:
