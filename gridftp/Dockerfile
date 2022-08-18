@@ -1,5 +1,16 @@
+# syntax=docker/dockerfile:1
 FROM opensciencegrid/software-base:fresh
-LABEL maintainer="Lincoln Bryant <lincolnb@uchicago.edu>"
+
+# Labels
+LABEL io.slateci.image.name="gridftp"
+LABEL io.slateci.image.tags=""
+LABEL org.opencontainers.image.authors="lincolnb@uchicago.edu"
+LABEL org.opencontainers.image.description=""
+LABEL org.opencontainers.image.licenses="Unlicense"
+LABEL org.opencontainers.image.title="Grid FTP"
+LABEL org.opencontainers.image.url="https://github.com/slateci/docker-images"
+LABEL org.opencontainers.image.vendor="SLATECI"
+LABEL org.opencontainers.image.version="6.0.0"
 
 RUN yum update -y
 

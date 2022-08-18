@@ -1,6 +1,17 @@
 # syntax=docker/dockerfile:1
 FROM centos:7
 
+# Labels
+LABEL io.slateci.image.name="minislate"
+LABEL io.slateci.image.tags=""
+LABEL org.opencontainers.image.authors=""
+LABEL org.opencontainers.image.description="This is the container used by MiniSLATE for local SLATE app development."
+LABEL org.opencontainers.image.licenses="Unlicense"
+LABEL org.opencontainers.image.title="MiniSLATE Base Image"
+LABEL org.opencontainers.image.url="https://github.com/slateci/minislate"
+LABEL org.opencontainers.image.vendor="SLATECI"
+LABEL org.opencontainers.image.version="1.0.5"
+
 # Docker image build arguments:
 ARG endpoint='http://localhost:18080'
 ARG portalbranch='master'

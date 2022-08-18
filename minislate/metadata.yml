@@ -1,9 +1,0 @@
-name: minislate
-version: 1.0.5
-
-description: This is the container used by Minislate for local SLATE app development.
-maintainer:
-usage:
-url: https://github.com/slateci/minislate
-
-tags: []

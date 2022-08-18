@@ -2,6 +2,8 @@
 FROM centos:7
 
 # Labels
+LABEL io.slateci.image.name="slate-client-server"
+LABEL io.slateci.image.tags=""
 LABEL org.opencontainers.image.authors="adam.h.griffith@utah.edu"
 LABEL org.opencontainers.image.description="This is the container that pre-installs and builds all C++ dependencies, Helm3, and the AWS CLI into the file system of the resulting Centos7 image for the slateci/slate-client-server project."
 LABEL org.opencontainers.image.licenses="Unlicense"

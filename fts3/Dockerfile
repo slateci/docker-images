@@ -1,6 +1,16 @@
+# syntax=docker/dockerfile:1
 FROM opensciencegrid/software-base:fresh
-LABEL description="File Transfer Service from CERN"
-LABEL maintainer=lincolnb@uchicago.edu
+
+# Labels
+LABEL io.slateci.image.name="fts3"
+LABEL io.slateci.image.tags=""
+LABEL org.opencontainers.image.authors="lincolnb@uchicago.edu"
+LABEL org.opencontainers.image.description="File Transfer Service from CERN"
+LABEL org.opencontainers.image.licenses="Unlicense"
+LABEL org.opencontainers.image.title="File Transfer Service - 3"
+LABEL org.opencontainers.image.url="https://github.com/slateci/docker-images"
+LABEL org.opencontainers.image.vendor="SLATECI"
+LABEL org.opencontainers.image.version="3.9.0"
 
 ADD "http://fts-repo.web.cern.ch/fts-repo/fts3-prod-el7.repo" "/etc/yum.repos.d/"
 #ADD "https://fts-repo.web.cern.ch/fts-repo/fts3-rc-el7.repo" "/etc/yum.repos.d/"

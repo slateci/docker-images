@@ -2,6 +2,8 @@
 FROM alpine:3.10.9
 
 # Labels
+LABEL io.slateci.image.name="slate-client-alpine"
+LABEL io.slateci.image.tags=""
 LABEL org.opencontainers.image.authors="adam.h.griffith@utah.edu"
 LABEL org.opencontainers.image.description="This is the container that provides a build environment for the slateci/slate-client-server project and the static Linux SLATE Remote Client."
 LABEL org.opencontainers.image.licenses="Unlicense"

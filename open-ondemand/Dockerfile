@@ -1,4 +1,16 @@
+# syntax=docker/dockerfile:1
 FROM centos:7
+
+# Labels
+LABEL io.slateci.image.name="open-ondemand"
+LABEL io.slateci.image.tags=""
+LABEL org.opencontainers.image.authors=""
+LABEL org.opencontainers.image.description=""
+LABEL org.opencontainers.image.licenses="Unlicense"
+LABEL org.opencontainers.image.title="Open OnDemand"
+LABEL org.opencontainers.image.url="https://github.com/slateci/docker-images"
+LABEL org.opencontainers.image.vendor="SLATECI"
+LABEL org.opencontainers.image.version="2.0.13"
 
 RUN yum update -y
 

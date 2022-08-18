@@ -1,9 +1,0 @@
-name: slate-client-alpine
-version: 1.0.0
-
-description: This is the container that provides a build environment for the slateci/slate-client-server project and the static Linux SLATE Remote Client.
-maintainer:
-usage:
-url: https://github.com/slateci/slate-client-server
-
-tags: []
