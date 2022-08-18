@@ -111,6 +111,7 @@ jobs:
           push: false
           load: true
           tags: ${{ env.LOCAL_IMAGE_TAG }}
+        timeout-minutes: 30
 
       - name: Lint with Dockle
         uses: hands-lab/dockle-action@v1
@@ -173,3 +174,4 @@ jobs:
 #          push: true
 #          tags: |
 #            ${{ steps.set-tags.outputs.final-tags }}
+#        timeout-minutes: 30
