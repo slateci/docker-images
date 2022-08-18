@@ -3,6 +3,9 @@ concurrency:
   group: bpi-${{ github.repository }}
 
 on:
+  pull_request:
+    branches:
+      - stable
   push:
     branches:
 #      - stable
@@ -133,6 +136,7 @@ jobs:
 
       - id: inspect
         name: Docker inspect
+        if: ${{ github.event_name != 'pull_request' }}
         working-directory: .
         run: |-
           IMAGE_VERSION=$(docker inspect --format='{{ index .Config.Labels "org.opencontainers.image.version" }}' ${{ matrix.directory }}:${{ github.sha }})
@@ -147,6 +151,7 @@ jobs:
 
       - id: set-tags
         name: Set tags
+        if: ${{ github.event_name != 'pull_request' }}
         uses: jannekem/run-python-script-action@v1
         with:
           script: |
@@ -160,6 +165,7 @@ jobs:
             print(result)
 
       - name: Authenticate with OSG Harbor
+        if: ${{ github.event_name != 'pull_request' }}
         uses: docker/login-action@v2
         with:
           registry: hub.opensciencegrid.org
