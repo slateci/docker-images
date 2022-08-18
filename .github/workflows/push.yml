@@ -71,8 +71,8 @@ jobs:
             print("Found the following modified directories...")
             print(result)
 
-  test:
-    name: Test
+  deploy:
+    name: Deploy Image
     runs-on: ubuntu-20.04
     needs:
       - gather
@@ -85,6 +85,7 @@ jobs:
 
     env:
       IMAGE_BASENAME: "hub.opensciencegrid.org/slate/${{ matrix.directory }}"
+      LOCAL_IMAGE_TAG: "${{ matrix.directory }}:${{ github.sha }}"
 
     steps:
       - name: Check out repo
@@ -108,7 +109,24 @@ jobs:
           file: "./${{ matrix.directory }}/Dockerfile"
           push: false
           load: true
-          tags: "${{ matrix.directory }}:${{ github.sha }}"
+          tags: ${{ env.LOCAL_IMAGE_TAG }}
+
+      - name: Lint with Dockle
+        uses: hands-lab/dockle-action@v1
+        with:
+          image: ${{ env.LOCAL_IMAGE_TAG }}
+          exit-code: '1'
+          exit-level: FATAL
+
+      - name: Scan with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.LOCAL_IMAGE_TAG }}
+          format: 'table'
+          exit-code: '0'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
 
       - id: inspect
         name: Docker inspect
