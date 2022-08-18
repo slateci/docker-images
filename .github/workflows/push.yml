@@ -164,11 +164,11 @@ jobs:
           username: "${{ secrets.OSG_HUB_USERNAME }}"
           password: "${{ secrets.OSG_HUB_ACCESS_TOKEN }}"
 
-      - name: Build/push image
-        uses: docker/build-push-action@v3
-        with:
-          context: "./${{ matrix.directory }}"
-          file: "./${{ matrix.directory }}/Dockerfile"
-          push: true
-          tags: |
-            ${{ steps.set-tags.outputs.final-tags }}
+#      - name: Build/push image
+#        uses: docker/build-push-action@v3
+#        with:
+#          context: "./${{ matrix.directory }}"
+#          file: "./${{ matrix.directory }}/Dockerfile"
+#          push: true
+#          tags: |
+#            ${{ steps.set-tags.outputs.final-tags }}
