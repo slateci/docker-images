@@ -1,0 +1,3 @@
+# Ignore "last user should not be root"
+CIS-DI-0001
+
