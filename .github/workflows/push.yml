@@ -96,13 +96,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - id: image-metadata
-        name: Image metadata
-        uses: docker/metadata-action@v4
-        with:
-          images: |
-            ${{ env.IMAGE_BASENAME }}
-
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -114,7 +107,7 @@ jobs:
           context: "./${{ matrix.directory }}"
           file: "./${{ matrix.directory }}/Dockerfile"
           push: false
-          tags: "latest"
+          tags: "${{ env.IMAGE_BASENAME }}:latest"
 
       - name: Docker inspect
         working-directory: .
