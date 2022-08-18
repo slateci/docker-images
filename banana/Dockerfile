@@ -3,7 +3,7 @@ FROM hello-world:latest
 
 # Labels
 LABEL io.slateci.image.name="banana"
-LABEL io.slateci.image.tags="latest"
+LABEL io.slateci.image.tags=""
 LABEL org.opencontainers.image.authors="adam.h.griffith@utah.edu"
 LABEL org.opencontainers.image.description="This is a proof-of-concept container for OCI labels."
 LABEL org.opencontainers.image.licenses="Unlicense"
