@@ -64,3 +64,4 @@ RUN chmod +x /tmp/scripts/install-helm.sh && \
 
 # Clean up scripts:
 RUN rm -rf /tmp/scripts
+

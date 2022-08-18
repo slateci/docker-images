@@ -64,3 +64,4 @@ RUN mkdir -p /etc/condor/passwords.d && \
     chown condor: /etc/condor/tokens.d
 
 CMD ["/usr/local/sbin/supervisord_startup.sh"]
+

@@ -231,4 +231,3 @@ RUN mkdir -p /etc/condor/passwords.d && \
     chmod 755 /usr/local/sbin/supervisord_startup.sh
 
 CMD ["/usr/local/sbin/supervisord_startup.sh"]
-

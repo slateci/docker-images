@@ -37,3 +37,4 @@ COPY 10-fts.conf /etc/supervisord.d/
 COPY 20-fts-config.sh /etc/osg/image-config.d/
 
 ENTRYPOINT ["/usr/local/sbin/supervisord_startup.sh"]
+
