@@ -70,8 +70,10 @@ jobs:
           script: |
             import json
 
-            modified_dirs = "${{ steps.changed-files.outputs.modified_files }}"
-            result = json.dumps(modified_dirs.split())
+            added_dirs = "${{ steps.changed-files.outputs.added_files }}".split()
+            modified_dirs = "${{ steps.changed-files.outputs.modified_files }}".split()
+            dirs = added_dirs + modified_dirs
+            result = json.dumps(dirs)
             
             set_output('directories', result)
             print("Found the following modified directories...")
