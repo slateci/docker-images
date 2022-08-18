@@ -1,6 +1,5 @@
 FROM centos:7
 
-# hadolint ignore=DL3031
 RUN yum update -y
 
 RUN yum install -y epel-release

@@ -1,7 +1,6 @@
 FROM opensciencegrid/software-base:fresh
 LABEL maintainer="Lincoln Bryant <lincolnb@uchicago.edu>"
 
-# hadolint ignore=DL3031
 RUN yum update -y && yum install -y epel-release
 
 # upcoming for tokens

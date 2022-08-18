@@ -1,6 +1,5 @@
 FROM centos:7
 
-# hadolint ignore=DL3031
 RUN yum update -y
 
 RUN yum install -y epel-release && \
@@ -38,7 +37,6 @@ RUN mkdir -p /etc/ood/config/clusters.d
 RUN mkdir -p /opt/ood/linuxhost_adapter
 WORKDIR /opt/ood/linuxhost_adapter
 
-# hadolint ignore=DL3031
 RUN yum update -y
 
 # Clean up after yum:

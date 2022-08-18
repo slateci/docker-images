@@ -1,7 +1,6 @@
 FROM centos:7
 LABEL maintainer="Lincoln Bryant <lincolnb@uchicago.edu>"
 
-# hadolint ignore=DL3031
 RUN yum update -y && yum install -y epel-release
 
 RUN curl -LOs https://downloads.globus.org/toolkit/globus-connect-server/globus-connect-server-repo-latest.noarch.rpm

@@ -2,11 +2,8 @@ FROM opensciencegrid/software-base:fresh
 LABEL description="File Transfer Service from CERN"
 LABEL maintainer=lincolnb@uchicago.edu
 
-# hadolint ignore=DL3020
 ADD "http://fts-repo.web.cern.ch/fts-repo/fts3-prod-el7.repo" "/etc/yum.repos.d/"
-# hadolint ignore=DL3020
 #ADD "https://fts-repo.web.cern.ch/fts-repo/fts3-rc-el7.repo" "/etc/yum.repos.d/"
-# hadolint ignore=DL3020
 ADD "https://dmc-repo.web.cern.ch/dmc-repo/dmc-rc-el7.repo" "/etc/yum.repos.d/"
 #RUN /bin/sed -i '/^enabled=1/a priority=97' /etc/yum.repos.d/dmc-rc-el7.repo
 

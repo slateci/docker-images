@@ -1,7 +1,6 @@
 FROM opensciencegrid/software-base:fresh
 LABEL maintainer="Lincoln Bryant <lincolnb@uchicago.edu>"
 
-# hadolint ignore=DL3031
 RUN yum update -y
 
 RUN yum install osg-gridftp osg-ca-certs yum-plugin-priorities gfal2-all gfal2-util globus-proxy-utils -y
