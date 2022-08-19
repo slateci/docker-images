@@ -1,10 +1,22 @@
-# The JupyterLab dependency installation commands in this Dockerfile are taken from 
+# syntax=docker/dockerfile:1
+FROM centos:7
+
+# The JupyterLab dependency installation commands in this Dockerfile are taken from
 # the official upstream repos and modified as needed to work with CentOS and Condor.
 # To see the original Dockerfiles and scripts, please refer to the official JupyterLab
 # repos at https://hub.docker.com/u/jupyter/
- 
-FROM centos:7
-LABEL maintainer="SLATE Team"
+
+# Labels
+LABEL io.slateci.image.name="jupyter-condor-centos7"
+LABEL io.slateci.image.tags=""
+LABEL org.opencontainers.image.authors=""
+LABEL org.opencontainers.image.description=""
+LABEL org.opencontainers.image.licenses="Unlicense"
+LABEL org.opencontainers.image.title="Jupyter Condor - CentOS 7"
+LABEL org.opencontainers.image.url="https://github.com/slateci/docker-images"
+LABEL org.opencontainers.image.vendor="SLATECI"
+LABEL org.opencontainers.image.version="1.0.1"
+
 ARG NB_USER="jovyan"
 ARG NB_UID="1000"
 ARG NB_GID="100"
@@ -219,4 +231,3 @@ RUN mkdir -p /etc/condor/passwords.d && \
     chmod 755 /usr/local/sbin/supervisord_startup.sh
 
 CMD ["/usr/local/sbin/supervisord_startup.sh"]
-

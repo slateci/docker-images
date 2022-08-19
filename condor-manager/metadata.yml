@@ -1,8 +1,0 @@
-name: condor-manager
-description:
-maintainer: Lincoln Bryant <lincolnb@uchicago.edu>
-usage:
-url:
-version: 8.9.0
-
-tags: []

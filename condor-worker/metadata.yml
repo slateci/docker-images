@@ -1,8 +1,0 @@
-name: condor-worker
-description:
-maintainer: Lincoln Bryant <lincolnb@uchicago.edu>
-usage:
-url:
-version: 8.6.14
-
-tags: []

@@ -1,4 +1,16 @@
+# syntax=docker/dockerfile:1
 FROM centos:7
+
+# Labels
+LABEL io.slateci.image.name="basic-auth"
+LABEL io.slateci.image.tags=""
+LABEL org.opencontainers.image.authors=""
+LABEL org.opencontainers.image.description="This is generalized container meant to support basic Authentication and SSH through SSSD integration to AD/Kerberos/LDAP."
+LABEL org.opencontainers.image.licenses="Unlicense"
+LABEL org.opencontainers.image.title="Basic Auth"
+LABEL org.opencontainers.image.url="https://github.com/slateci/docker-images"
+LABEL org.opencontainers.image.vendor="SLATECI"
+LABEL org.opencontainers.image.version="1.0.18"
 
 RUN yum update -y && \
     yum install -y epel-release && \

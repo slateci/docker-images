@@ -1,7 +1,17 @@
+# syntax=docker/dockerfile:1
 FROM centos:7
-LABEL maintainer="Lincoln Bryant <lincolnb@uchicago.edu>"
 
-# hadolint ignore=DL3031
+# Labels
+LABEL io.slateci.image.name="globus-connect-v4"
+LABEL io.slateci.image.tags=""
+LABEL org.opencontainers.image.authors="lincolnb@uchicago.edu"
+LABEL org.opencontainers.image.description=""
+LABEL org.opencontainers.image.licenses="Unlicense"
+LABEL org.opencontainers.image.title="Globus Connect - 4"
+LABEL org.opencontainers.image.url="https://github.com/slateci/docker-images"
+LABEL org.opencontainers.image.vendor="SLATECI"
+LABEL org.opencontainers.image.version="4.0.59"
+
 RUN yum update -y && yum install -y epel-release
 
 RUN curl -LOs https://downloads.globus.org/toolkit/globus-connect-server/globus-connect-server-repo-latest.noarch.rpm

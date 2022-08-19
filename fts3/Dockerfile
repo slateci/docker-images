@@ -1,12 +1,19 @@
+# syntax=docker/dockerfile:1
 FROM opensciencegrid/software-base:fresh
-LABEL description="File Transfer Service from CERN"
-LABEL maintainer=lincolnb@uchicago.edu
 
-# hadolint ignore=DL3020
+# Labels
+LABEL io.slateci.image.name="fts3"
+LABEL io.slateci.image.tags=""
+LABEL org.opencontainers.image.authors="lincolnb@uchicago.edu"
+LABEL org.opencontainers.image.description="File Transfer Service from CERN"
+LABEL org.opencontainers.image.licenses="Unlicense"
+LABEL org.opencontainers.image.title="File Transfer Service - 3"
+LABEL org.opencontainers.image.url="https://github.com/slateci/docker-images"
+LABEL org.opencontainers.image.vendor="SLATECI"
+LABEL org.opencontainers.image.version="3.9.0"
+
 ADD "http://fts-repo.web.cern.ch/fts-repo/fts3-prod-el7.repo" "/etc/yum.repos.d/"
-# hadolint ignore=DL3020
 #ADD "https://fts-repo.web.cern.ch/fts-repo/fts3-rc-el7.repo" "/etc/yum.repos.d/"
-# hadolint ignore=DL3020
 ADD "https://dmc-repo.web.cern.ch/dmc-repo/dmc-rc-el7.repo" "/etc/yum.repos.d/"
 #RUN /bin/sed -i '/^enabled=1/a priority=97' /etc/yum.repos.d/dmc-rc-el7.repo
 
@@ -30,3 +37,4 @@ COPY 10-fts.conf /etc/supervisord.d/
 COPY 20-fts-config.sh /etc/osg/image-config.d/
 
 ENTRYPOINT ["/usr/local/sbin/supervisord_startup.sh"]
+

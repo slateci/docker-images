@@ -1,6 +1,17 @@
 # syntax=docker/dockerfile:1
 FROM centos:7
 
+# Labels
+LABEL io.slateci.image.name="slate-client-server"
+LABEL io.slateci.image.tags=""
+LABEL org.opencontainers.image.authors="adam.h.griffith@utah.edu"
+LABEL org.opencontainers.image.description="This is the container that pre-installs and builds all C++ dependencies, Helm3, and the AWS CLI into the file system of the resulting Centos7 image for the slateci/slate-client-server project."
+LABEL org.opencontainers.image.licenses="Unlicense"
+LABEL org.opencontainers.image.title="SLATE API Server CentOS Build Environment"
+LABEL org.opencontainers.image.url="https://github.com/slateci/slate-client-server"
+LABEL org.opencontainers.image.vendor="SLATECI"
+LABEL org.opencontainers.image.version="1.0.9"
+
 # Docker image build arguments:
 ARG awssdkversion=1.7.345
 ARG helmversion=3.8.1
@@ -53,3 +64,4 @@ RUN chmod +x /tmp/scripts/install-helm.sh && \
 
 # Clean up scripts:
 RUN rm -rf /tmp/scripts
+

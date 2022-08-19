@@ -1,5 +1,16 @@
+# syntax=docker/dockerfile:1
 FROM opensciencegrid/osg-wn:3.5-el7
-LABEL maintainer="Lincoln Bryant <lincolnb@uchicago.edu>"
+
+# Labels
+LABEL io.slateci.image.name="condor-worker"
+LABEL io.slateci.image.tags=""
+LABEL org.opencontainers.image.authors="lincolnb@uchicago.edu"
+LABEL org.opencontainers.image.description=""
+LABEL org.opencontainers.image.licenses="Unlicense"
+LABEL org.opencontainers.image.title="Example Image"
+LABEL org.opencontainers.image.url="https://github.com/slateci/docker-images"
+LABEL org.opencontainers.image.vendor="SLATECI"
+LABEL org.opencontainers.image.version="8.6.14"
 
 # another hack- we need to remove singularity and replace it with Igor's script
 # that wraps around the singularity binary from CVMFS and removes the --pid

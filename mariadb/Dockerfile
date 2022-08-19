@@ -1,5 +1,16 @@
+# syntax=docker/dockerfile:1
 FROM docker.io/bitnami/minideb:buster
-LABEL maintainer="Bitnami <containers@bitnami.com>"
+
+# Labels
+LABEL io.slateci.image.name="mariadb"
+LABEL io.slateci.image.tags=""
+LABEL org.opencontainers.image.authors="containers@bitnami.com"
+LABEL org.opencontainers.image.description=""
+LABEL org.opencontainers.image.licenses="Unlicense"
+LABEL org.opencontainers.image.title="MariaDB"
+LABEL org.opencontainers.image.url="https://github.com/slateci/docker-images"
+LABEL org.opencontainers.image.vendor="SLATECI"
+LABEL org.opencontainers.image.version="10.3.22"
 
 ENV BITNAMI_PKG_CHMOD="-R g+rwX" \
     HOME="/" \
