@@ -3,7 +3,7 @@
 This repository holds the Dockerfiles for SLATE CI-specific container images.
 
 * Container images will be rebuilt when there is a change to a folder tracked by `build_folders.txt`.
-* Images in the `stable` branch will automatically receive the 'latest' tag.
+* Images in the `master` branch will automatically receive the 'latest' tag.
 
 ## Features
 
@@ -20,7 +20,7 @@ Copy `./examples` to a new folder and:
 
 ## Updating an Existing Image
 
-Make your changes to an image (e.g. `./<your folder>/`) and increment the `org.opencontainers.image.version` label in `./<your folder>/Dockerfile`. Pushing your changes to `stable` will automatically trigger a new image build.
+Make your changes to an image (e.g. `./<your folder>/`) and increment the `org.opencontainers.image.version` label in `./<your folder>/Dockerfile`. Pushing your changes to `master` will automatically trigger a new image build.
 
 ## Pull Requests
 

@@ -5,11 +5,10 @@ concurrency:
 on:
   pull_request:
     branches:
-      - stable
+      - master
   push:
     branches:
-#      - stable
-      - feature/43-retool-using-existing-github-marketplace-actions
+      - master
 
 env:
   PYTHON_VERSION: 3.9
@@ -76,7 +75,7 @@ jobs:
             print(result)
 
   deploy:
-    name: Deploy Image
+    name: Deploy/check Image
     runs-on: ubuntu-20.04
     needs:
       - gather
