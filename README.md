@@ -24,7 +24,7 @@ Make your changes to an image (e.g. `./<your folder>/`) and increment the `org.o
 
 ## Pull Requests
 
-When a pull request is made to this repo no checks are currently run. This may change as we have time to add lint and scan GitHub workflows.
+When a pull request is made to this repo Dockle lint and Trivy scans will run.
 
 ## FAQ
 
