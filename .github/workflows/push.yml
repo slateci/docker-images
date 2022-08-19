@@ -51,7 +51,7 @@ jobs:
 
       - id: changed-files
         name: Get changed directories
-        uses: tj-actions/changed-files@v26.1
+        uses: tj-actions/changed-files@v27
         with:
           dir_names: true
           files: |
