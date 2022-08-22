@@ -181,3 +181,7 @@ jobs:
           tags: |
             ${{ steps.set-tags.outputs.final-tags }}
         timeout-minutes: 30
+
+      - name: Notify Slack of Failure
+        if: failure()
+        uses: slateci/github-actions/.github/actions/slack-notify-failure@v4
