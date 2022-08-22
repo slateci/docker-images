@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM centos:7
+FROM centos:77
 
 # Labels
 LABEL io.slateci.image.name="minislate"
