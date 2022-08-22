@@ -84,3 +84,4 @@ RUN chmod +x init.sh
 
 # Ports:
 EXPOSE 5000 51000 18080
+
