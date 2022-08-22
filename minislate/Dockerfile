@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM centos:77
+FROM centos:7
 
 # Labels
 LABEL io.slateci.image.name="minislate"
@@ -84,4 +84,3 @@ RUN chmod +x init.sh
 
 # Ports:
 EXPOSE 5000 51000 18080
-
