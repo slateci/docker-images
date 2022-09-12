@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM alpine:3.10.9
+FROM alpine:3.11.6
 
 # Labels
 LABEL io.slateci.image.name="slate-client-alpine"
@@ -10,7 +10,7 @@ LABEL org.opencontainers.image.licenses="Unlicense"
 LABEL org.opencontainers.image.title="SLATE Remote Client Alpine Build Environment"
 LABEL org.opencontainers.image.url="https://github.com/slateci/slate-client-server"
 LABEL org.opencontainers.image.vendor="SLATECI"
-LABEL org.opencontainers.image.version="1.0.0"
+LABEL org.opencontainers.image.version="1.1.0"
 
 # Package installs/updates:
 RUN apk update && \
@@ -28,10 +28,6 @@ RUN apk update && \
         nghttp2-dev \
         nghttp2-static \
         openssl-dev \
-        zlib-dev
-
-
-# For alpine:3.16.0:
-# * Add openssl-libs-static to apk
-# * Need to find static library for:
-#   `/usr/lib/gcc/x86_64-alpine-linux-musl/11.2.1/../../../../x86_64-alpine-linux-musl/bin/ld: cannot find -lz: No such file or directory`
+        openssl-libs-static \
+        zlib-dev \
+        zlib-static
