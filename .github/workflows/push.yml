@@ -63,12 +63,16 @@ jobs:
         with:
           script: |
             import json
+            import re
 
             added_dirs = "${{ steps.changed-files.outputs.added_files }}".split()
             modified_dirs = "${{ steps.changed-files.outputs.modified_files }}".split()
             dirs = added_dirs + modified_dirs
             unique_dirs = [*set(dirs)]
-            result = json.dumps(unique_dirs)
+            
+            regex = re.compile(r'.*/.*$')
+            filtered_dirs = [elem for elem in unique_dirs if not regex.match(elem)]
+            result = json.dumps(filtered_dirs)
             
             set_output('directories', result)
             print("Found the following added/modified directories...")
