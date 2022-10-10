@@ -4,7 +4,7 @@
 set -euo pipefail
 
 # Load env variables:
-export $(grep -v '^#' /helm-chart/.env | xargs)
+export $(grep -v '^#' /work/.env | xargs)
 
 cat << EOF
 ===================================================
