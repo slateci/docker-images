@@ -119,12 +119,17 @@ jobs:
           tags: ${{ env.LOCAL_IMAGE_TAG }}
         timeout-minutes: 30
 
+      - name: List loaded images
+        working-directory: .
+        run: docker image ls
+
       - name: Lint with Dockle
-        uses: hands-lab/dockle-action@v1
+        uses: erzz/dockle-action@v1
         with:
           image: ${{ env.LOCAL_IMAGE_TAG }}
-          exit-code: '0'
-          exit-level: FATAL
+          exit-code: 0
+          failure-threshold: FATAL
+          timeout: "10m"
 
       - name: Scan with Trivy
         uses: aquasecurity/trivy-action@master
