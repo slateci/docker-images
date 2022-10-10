@@ -8,6 +8,7 @@ This is the container for Helm and the Google Cloud SDK.
 
 1. Create a new `.env` from the `./helm-gcloud-sdk/.env.tmpl` in this repository and place it at the base of the desired mount point for the image (e.g. `/path/to/helm-slate-api/.env`).
 2. Replace the placeholder content with actual values.
+3. Download a JSON key for the Google `<service-account` next to the `.env` file above.
 
 ### Example Commands
 
