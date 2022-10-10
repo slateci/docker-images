@@ -9,7 +9,6 @@ on:
   push:
     branches:
       - master
-      - feature/67-overzealous-changed-dir-patterns-in-pushyml
 
 env:
   PYTHON_VERSION: 3.9

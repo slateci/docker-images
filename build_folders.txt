@@ -16,4 +16,3 @@ perfsonar-checker
 python-chromedriver-selenium
 slate-client-alpine
 slate-client-server
-test
