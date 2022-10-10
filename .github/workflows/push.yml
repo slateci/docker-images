@@ -9,6 +9,7 @@ on:
   push:
     branches:
       - master
+      - feature/69-trivy-unable-to-scan-local-images
 
 env:
   PYTHON_VERSION: 3.9
@@ -118,6 +119,10 @@ jobs:
           load: true
           tags: ${{ env.LOCAL_IMAGE_TAG }}
         timeout-minutes: 30
+
+      - name: List loaded images
+        working-directory: .
+        run: docker image ls
 
       - name: Lint with Dockle
         uses: hands-lab/dockle-action@v1
