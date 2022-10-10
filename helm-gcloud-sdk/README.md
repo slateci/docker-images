@@ -15,7 +15,7 @@ This is the container for Helm and the Google Cloud SDK.
 Run the image.
 
 ```shell
-[your@localmachine helm-slate-api]$ docker run -it -v ${PWD}:/work:Z hub.opensciencegrid.org/slate/helm-gcloud-sdk:1.0.0
+[your@localmachine helm-slate-api]$ docker run -it -v ${PWD}:/work:Z hub.opensciencegrid.org/slate/helm-gcloud-sdk:1.0.2
 ===================================================
 Helm/GCloud Utility Container
 ===================================================
