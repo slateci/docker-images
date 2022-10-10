@@ -127,7 +127,7 @@ jobs:
       - name: Lint with Dockle
         uses: hands-lab/dockle-action@v1
         with:
-          image: localhost/${{ env.LOCAL_IMAGE_TAG }}
+          image: ${{ env.LOCAL_IMAGE_TAG }}
           exit-code: '0'
           exit-level: FATAL
 
