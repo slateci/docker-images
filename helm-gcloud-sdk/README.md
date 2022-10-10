@@ -12,10 +12,12 @@ This is the container for Helm and the Google Cloud SDK.
 
 ### Example Commands
 
+Run the image.
+
 ```shell
 [your@localmachine helm-slate-api]$ docker run -it -v ${PWD}:/work:Z hub.opensciencegrid.org/slate/helm-gcloud-sdk:1.0.0
 ===================================================
-GCloud/Helm Utility Container
+Helm/GCloud Utility Container
 ===================================================
 Activated service account credentials for: <service-account>
 
@@ -29,11 +31,17 @@ Fetching cluster endpoint and auth data.
 kubeconfig entry generated for <gke-cluster>.
 ```
 
+Get the pods in the `development` Helm namespace.
+
 ```shell
-[root@454344d8c4ca work]# kubectl get pods
-NAME                                    READY   STATUS             RESTARTS          AGE
-development-slate-api-bb7865d57-64mns   1/1     <status>           2176 (6s ago)     7d17h
-development-test-27517090--1-67zkj      0/1     <status>           0                 8d
+[root@454344d8c4ca work]# kubectl get pods --namespace development
+W1010 18:37:49.154648     133 gcp.go:119] WARNING: the gcp auth plugin is deprecated in v1.22+, unavailable in v1.26+; use gcloud instead.
+To learn more, consult https://cloud.google.com/blog/products/containers-kubernetes/kubectl-auth-changes-in-gke
+NAME                                           READY   STATUS    RESTARTS   AGE
+slate-api-dev-deployment-5d87f5ddf4-wc2pg      1/1     Running   0          2d23h
+slate-portal-dev-deployment-6d7874944d-8gl8c   1/1     Running   0          2d21h
+...
+...
 ```
 
 ## Image Includes

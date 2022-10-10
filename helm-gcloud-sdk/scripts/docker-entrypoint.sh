@@ -8,7 +8,7 @@ export $(grep -v '^#' /work/.env | xargs)
 
 cat << EOF
 ===================================================
-GCloud/Helm Utility Container
+Helm/GCloud Utility Container
 ===================================================
 EOF
 
