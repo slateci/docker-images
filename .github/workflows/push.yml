@@ -9,7 +9,6 @@ on:
   push:
     branches:
       - master
-      - feature/69-trivy-unable-to-scan-local-images
 
 env:
   PYTHON_VERSION: 3.9
