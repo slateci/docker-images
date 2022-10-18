@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM centos:7
+FROM rockylinux:9
 
 # Labels
 LABEL io.slateci.image.name="slate-client-server"
@@ -13,7 +13,7 @@ LABEL org.opencontainers.image.vendor="SLATECI"
 LABEL org.opencontainers.image.version="1.0.9"
 
 # Docker image build arguments:
-ARG awssdkversion=1.7.345
+ARG awssdkversion=1.9.365
 ARG helmversion=3.8.1
 ARG javaversion=1.8.0
 ARG kubectlversion=1.21.11
@@ -22,8 +22,11 @@ ARG kubectlversion=1.21.11
 COPY ./resources/yum.repos.d/* /etc/yum.repos.d
 
 # Package installs/updates:
-RUN yum install epel-release -y
-RUN yum install boost-devel \
+RUN dnf install -y dnf-plugins-core && \
+    dnf config-manager --set-enabled crb -y && \
+    dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm \
+    https://dl.fedoraproject.org/pub/epel/epel-next-release-latest-9.noarch.rpm
+RUN dnf install -y boost-devel \
     cmake3 \
     gcc-c++.x86_64 \
     libcurl-devel \
@@ -35,16 +38,34 @@ RUN yum install boost-devel \
     unzip \
     which \
     yaml-cpp-devel \
-    zlib-devel -y \
-RUN yum clean all && rm -rf /var/cache/yum
+    zlib-devel \
+    git 
 
 # Install AWS C++ SDK
-RUN  mkdir -p /__w/slate-client-server/slate-client-server/ && \
-     cd /__w/slate-client-server/slate-client-server/ && \
-     curl -fsSL https://slateci.io/slate-client-server/aws-cpp-sdk/centos7-${awssdkversion}.tar.gz -o centos7-${awssdkversion}.tar.gz && \
-     tar -zxf centos7-${awssdkversion}.tar.gz --directory . && \
-     cd ./aws/build && \
-     make install
+
+RUN mkdir /tmp/aws && \
+    cd /tmp/aws && \
+    git clone https://github.com/aws/aws-sdk-cpp.git && \
+    cd aws-sdk-cpp && \
+    git submodule update --init --recursive && \
+    git checkout tags/$awssdkversion && \
+    cd .. && \
+    mkdir build && \
+    cd build && \
+    cmake ../aws-sdk-cpp  -DBUILD_ONLY="dynamodb;route53" -DBUILD_SHARED_LIBS=Off  -DCMAKE_PREFIX_PATH=/tmp/aws/aws-sdk-cpp -DENABLE_TESTING=Off && \
+    make && \
+    make install
+ 
+
+#RUN dnf clean all && rm -rf /var/cache/yum
+
+# Install AWS C++ SDK
+#RUN  mkdir -p /__w/slate-client-server/slate-client-server/ && \
+#     cd /__w/slate-client-server/slate-client-server/ && \
+#     curl -fsSL https://slateci.io/slate-client-server/aws-cpp-sdk/centos7-${awssdkversion}.tar.gz -o centos7-${awssdkversion}.tar.gz && \
+#     tar -zxf centos7-${awssdkversion}.tar.gz --directory . && \
+#     cd ./aws/build && \
+#     make install
 
 # Set up scripts:
 COPY ./scripts /tmp/scripts
