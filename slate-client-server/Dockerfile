@@ -10,7 +10,7 @@ LABEL org.opencontainers.image.licenses="Unlicense"
 LABEL org.opencontainers.image.title="SLATE API Server CentOS Build Environment"
 LABEL org.opencontainers.image.url="https://github.com/slateci/slate-client-server"
 LABEL org.opencontainers.image.vendor="SLATECI"
-LABEL org.opencontainers.image.version="1.0.9"
+LABEL org.opencontainers.image.version="2.0.0"
 
 # Docker image build arguments:
 ARG awssdkversion=1.9.365
