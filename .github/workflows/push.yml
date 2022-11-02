@@ -11,7 +11,7 @@ on:
       - master
 
 env:
-  PYTHON_VERSION: 3.9
+  PYTHON_VERSION: 3.9.14
 
 jobs:
   gather:
