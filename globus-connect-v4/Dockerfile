@@ -10,7 +10,7 @@ LABEL org.opencontainers.image.licenses="Unlicense"
 LABEL org.opencontainers.image.title="Globus Connect - 4"
 LABEL org.opencontainers.image.url="https://github.com/slateci/docker-images"
 LABEL org.opencontainers.image.vendor="SLATECI"
-LABEL org.opencontainers.image.version="4.0.59"
+LABEL org.opencontainers.image.version="4.0.63"
 
 RUN yum update -y && yum install -y epel-release
 
