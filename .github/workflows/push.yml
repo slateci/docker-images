@@ -41,7 +41,7 @@ jobs:
               try:
                 build_folders = list(stream.read().splitlines())
                 build_folder_patterns = [folder + '/**' for folder in build_folders]
-                result = '\n'.join(build_folder_patterns)
+                result = ' '.join(build_folder_patterns)
               except Exception as ex:
                 raise ex
             
@@ -54,8 +54,8 @@ jobs:
         uses: tj-actions/changed-files@v34.0.4
         with:
           dir_names: true
-          files: |
-            ${{ steps.build-folder-patterns.outputs.patterns }}
+          files: ${{ steps.build-folder-patterns.outputs.patterns }}
+          files_separator: ' '
 
       - id: set-directories
         name: Set directories
