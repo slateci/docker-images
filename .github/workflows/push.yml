@@ -34,7 +34,7 @@ jobs:
 
       - id: build-folder-patterns
         name: Build Folder Patterns
-        uses: jannekem/run-python-script-action@v1
+        uses: jannekem/run-python-script-action@v1.4
         with:
           script: |
             with open("${{ github.workspace }}/build_folders.txt") as stream:
@@ -55,7 +55,6 @@ jobs:
         with:
           dir_names: true
           files: |
-            hello-there
             ${{ steps.build-folder-patterns.outputs.patterns }}
 
       - id: set-directories
