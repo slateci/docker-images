@@ -166,7 +166,7 @@ jobs:
             proposed_image_tags = "${{ steps.inspect.outputs.proposed-tags }}".split() + ['latest']
             unique_tags = [*set(proposed_image_tags)]
             full_tags = ["${{ env.IMAGE_BASENAME }}:" + tag for tag in unique_tags]
-            result = '\n'.join(full_tags)
+            result = ','.join(full_tags)
 
             set_output('final-tags', result)
             print("Calculated the final image tags...")
@@ -187,8 +187,7 @@ jobs:
           context: "./${{ matrix.directory }}"
           file: "./${{ matrix.directory }}/Dockerfile"
           push: true
-          tags: |
-            ${{ steps.set-tags.outputs.final-tags }}
+          tags: ${{ steps.set-tags.outputs.final-tags }}
         timeout-minutes: 30
 
       - name: Notify Slack of Failure
