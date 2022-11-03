@@ -16,7 +16,7 @@ LABEL org.opencontainers.image.version="2.0.0"
 ARG awssdkversion=1.9.365
 ARG helmversion=3.8.1
 ARG javaversion=1.8.0
-ARG kubectlversion=1.21.11
+ARG kubectlversion=1.24.7
 
 # Set up custom yum repos:
 COPY ./resources/yum.repos.d/* /etc/yum.repos.d
