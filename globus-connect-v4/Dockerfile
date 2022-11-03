@@ -29,3 +29,4 @@ COPY supervisord_startup.sh /usr/local/bin/supervisord_startup.sh
 RUN chmod +x /usr/local/bin/supervisord_startup.sh
 
 ENTRYPOINT ["/usr/local/bin/supervisord_startup.sh"]
+
