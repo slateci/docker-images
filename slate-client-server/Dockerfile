@@ -41,8 +41,9 @@ RUN dnf install -y boost-devel \
     zlib-devel \
     git 
 
-# Install AWS C++ SDK
+#RUN dnf clean all && rm -rf /var/cache/yum
 
+# Install AWS C++ SDK
 RUN mkdir /tmp/aws && \
     cd /tmp/aws && \
     git clone https://github.com/aws/aws-sdk-cpp.git && \
@@ -55,20 +56,13 @@ RUN mkdir /tmp/aws && \
     cmake ../aws-sdk-cpp  -DBUILD_ONLY="dynamodb;route53" -DBUILD_SHARED_LIBS=Off  -DCMAKE_PREFIX_PATH=/tmp/aws/aws-sdk-cpp -DENABLE_TESTING=Off && \
     make && \
     make install
- 
-
-#RUN dnf clean all && rm -rf /var/cache/yum
-
-# Install AWS C++ SDK
-#RUN  mkdir -p /__w/slate-client-server/slate-client-server/ && \
-#     cd /__w/slate-client-server/slate-client-server/ && \
-#     curl -fsSL https://slateci.io/slate-client-server/aws-cpp-sdk/centos7-${awssdkversion}.tar.gz -o centos7-${awssdkversion}.tar.gz && \
-#     tar -zxf centos7-${awssdkversion}.tar.gz --directory . && \
-#     cd ./aws/build && \
-#     make install
 
 # Set up scripts:
 COPY ./scripts /tmp/scripts
+
+# Install AWS C++ SDK
+#RUN chmod +x /tmp/scripts/install-aws-cpp-sdk.sh && \
+#    . /tmp/scripts/install-aws-cpp-sdk.sh ${awssdkversion} rocky9
 
 # Install AWS CLI (for debugging):
 RUN chmod +x /tmp/scripts/install-aws-cli.sh && \
