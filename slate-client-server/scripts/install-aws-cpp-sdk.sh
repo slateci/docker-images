@@ -7,7 +7,7 @@ set -euo pipefail
 export AWS_SDK_VERSION="${1}"
 export OS_DISTRIBUTION="${2}"
 
-cd tmp
+cd /tmp
 echo "Downloading AWS C++ SDK version: ${AWS_SDK_VERSION}..."
 curl -LO https://slateci.io/slate-client-server/aws-cpp-sdk/${OS_DISTRIBUTION}-${AWS_SDK_VERSION}.tar.gz
 

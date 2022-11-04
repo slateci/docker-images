@@ -4,7 +4,7 @@ FROM rockylinux:9
 # Labels
 LABEL io.slateci.image.name="slate-client-server"
 LABEL io.slateci.image.tags=""
-LABEL org.opencontainers.image.authors="adam.h.griffith@utah.edu"
+LABEL org.opencontainers.image.authors="adam.h.griffith@utah.edu,suchandra.thapa@gmail.com"
 LABEL org.opencontainers.image.description="This is the container that pre-installs and builds all C++ dependencies, Helm3, and the AWS CLI into the file system of the resulting Centos7 image for the slateci/slate-client-server project."
 LABEL org.opencontainers.image.licenses="Unlicense"
 LABEL org.opencontainers.image.title="SLATE API Server CentOS Build Environment"
@@ -29,6 +29,7 @@ RUN dnf install -y dnf-plugins-core && \
 RUN dnf install -y boost-devel \
     cmake3 \
     gcc-c++.x86_64 \
+    git \
     libcurl-devel \
     java-${javaversion} \
     kubectl-${kubectlversion} \
@@ -38,10 +39,12 @@ RUN dnf install -y boost-devel \
     unzip \
     which \
     yaml-cpp-devel \
-    zlib-devel \
-    git 
+    zlib-devel
 
-#RUN dnf clean all && rm -rf /var/cache/yum
+RUN dnf clean all && rm -rf /var/cache/yum
+
+# Set up scripts:
+COPY ./scripts /tmp/scripts
 
 # Install AWS C++ SDK
 RUN mkdir /tmp/aws && \
@@ -57,10 +60,9 @@ RUN mkdir /tmp/aws && \
     make && \
     make install
 
-# Set up scripts:
-COPY ./scripts /tmp/scripts
-
-# Install AWS C++ SDK
+# Doing the following results in "unable to find crypto errors" but keeping around
+# to debug during free cycles.
+# * See https://github.com/slateci/slate-client-server/issues/321
 #RUN chmod +x /tmp/scripts/install-aws-cpp-sdk.sh && \
 #    . /tmp/scripts/install-aws-cpp-sdk.sh ${awssdkversion} rocky9
 
