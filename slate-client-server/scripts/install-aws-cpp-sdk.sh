@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# NOTE: This script is a work-in-progress. The artifacts do not install correctly,
+#       resulting in dynamic library failures. The fix would be made in
+#       https://github.com/slateci/slate-client-server/blob/develop/.github/workflows/aws-cpp-sdk.yml.
+
 # Enable strict mode:
 set -euo pipefail
 
@@ -15,7 +19,15 @@ echo "Installing AWS C++ SDK..."
 tar -zxf ${OS_DISTRIBUTION}-${AWS_SDK_VERSION}.tar.gz --directory .
 chmod -R 755 /tmp/install-artifacts
 ls -al /tmp/install-artifacts
-cp -rf ./install-artifacts/lib64/** /usr/local/lib64/
+
+echo "Copying installation artifacts to /usr/local/**..."
+ID_LIKE=$(awk -F= '$1=="ID_LIKE" { print $2 ;}' /etc/os-release)
+if [[ "${ID_LIKE}" ==  *"debian"* ]]
+then
+  cp -rf ./install-artifacts/lib/** /usr/local/lib/
+else
+  cp -rf ./install-artifacts/lib64/** /usr/local/lib64/
+fi
 cp -rf ./install-artifacts/include/** /usr/local/include/
 
 echo "Cleaning up..."
