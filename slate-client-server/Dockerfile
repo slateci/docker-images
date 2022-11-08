@@ -10,7 +10,7 @@ LABEL org.opencontainers.image.licenses="Unlicense"
 LABEL org.opencontainers.image.title="SLATE API Server CentOS Build Environment"
 LABEL org.opencontainers.image.url="https://github.com/slateci/slate-client-server"
 LABEL org.opencontainers.image.vendor="SLATECI"
-LABEL org.opencontainers.image.version="2.0.0"
+LABEL org.opencontainers.image.version="2.0.1"
 
 # Docker image build arguments:
 ARG awssdkversion=1.9.365
@@ -47,24 +47,8 @@ RUN dnf clean all && rm -rf /var/cache/yum
 COPY ./scripts /tmp/scripts
 
 # Install AWS C++ SDK
-RUN mkdir /tmp/aws && \
-    cd /tmp/aws && \
-    git clone https://github.com/aws/aws-sdk-cpp.git && \
-    cd aws-sdk-cpp && \
-    git submodule update --init --recursive && \
-    git checkout tags/$awssdkversion && \
-    cd .. && \
-    mkdir build && \
-    cd build && \
-    cmake ../aws-sdk-cpp  -DBUILD_ONLY="dynamodb;route53" -DBUILD_SHARED_LIBS=Off  -DCMAKE_PREFIX_PATH=/tmp/aws/aws-sdk-cpp -DENABLE_TESTING=Off && \
-    make && \
-    make install
-
-# Doing the following results in "unable to find crypto errors" but keeping around
-# to debug during free cycles.
-# * See https://github.com/slateci/slate-client-server/issues/321
-#RUN chmod +x /tmp/scripts/install-aws-cpp-sdk.sh && \
-#    . /tmp/scripts/install-aws-cpp-sdk.sh ${awssdkversion} rocky9
+RUN chmod +x /tmp/scripts/install-aws-cpp-sdk.sh && \
+    . /tmp/scripts/install-aws-cpp-sdk.sh ${awssdkversion} rocky9
 
 # Install AWS CLI (for debugging):
 RUN chmod +x /tmp/scripts/install-aws-cli.sh && \
