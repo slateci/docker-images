@@ -7,7 +7,7 @@ LABEL io.slateci.image.tags=""
 LABEL org.opencontainers.image.authors="lincolnb@uchicago.edu"
 LABEL org.opencontainers.image.description=""
 LABEL org.opencontainers.image.licenses="Unlicense"
-LABEL org.opencontainers.image.title="Example Image"
+LABEL org.opencontainers.image.title="Condor Worker"
 LABEL org.opencontainers.image.url="https://github.com/slateci/docker-images"
 LABEL org.opencontainers.image.vendor="SLATECI"
 LABEL org.opencontainers.image.version="8.6.14"
@@ -32,7 +32,7 @@ RUN yum -y install --enablerepo=osg-upcoming condor \
                    unzip && \
     yum install http://linuxsoft.cern.ch/wlcg/centos7/x86_64/wlcg-repo-1.0.0-1.el7.noarch.rpm -y && \
     yum install HEP_OSlibs -y && \
-    yum clean all && rm -rf /var/cache/yum
+    yum clean all
 
 COPY container-files /
 RUN mkdir -p /var/lib/condor/credentials
