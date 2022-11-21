@@ -10,13 +10,14 @@ LABEL org.opencontainers.image.licenses="Unlicense"
 LABEL org.opencontainers.image.title="SLATE API Server CentOS Build Environment"
 LABEL org.opencontainers.image.url="https://github.com/slateci/slate-client-server"
 LABEL org.opencontainers.image.vendor="SLATECI"
-LABEL org.opencontainers.image.version="2.0.1"
+LABEL org.opencontainers.image.version="2.0.2"
 
 # Docker image build arguments:
 ARG awssdkversion=1.9.365
 ARG helmversion=3.8.1
 ARG javaversion=1.8.0
 ARG kubectlversion=1.24.7
+ARG opentelemetryversion=1.6.1
 
 # Set up custom yum repos:
 COPY ./resources/yum.repos.d/* /etc/yum.repos.d
@@ -28,20 +29,35 @@ RUN dnf install -y dnf-plugins-core && \
     https://dl.fedoraproject.org/pub/epel/epel-next-release-latest-9.noarch.rpm
 RUN dnf install -y boost-devel \
     cmake3 \
+    cryptopp \
     gcc-c++.x86_64 \
     git \
+    gmock \
+    gmock-devel \
+    google-benchmark \
+    google-benchmark-devel \
+    gtest \
+    gtest-devel \
+    json-devel \
+    libcurl \
     libcurl-devel \
     java-${javaversion} \
     kubectl-${kubectlversion} \
     make \
+    openssl \
     openssl-devel \
     perl-Digest-SHA \
+    procps-ng \
+    protobuf-devel \
+    protobuf-compiler \
+    strace \
     unzip \
     which \
     yaml-cpp-devel \
     zlib-devel
 
-RUN dnf clean all && rm -rf /var/cache/yum
+RUN dnf clean all && \
+    rm -rf /var/cache/yum
 
 # Set up scripts:
 COPY ./scripts /tmp/scripts
@@ -59,10 +75,13 @@ RUN chmod +x /tmp/scripts/install-dynamo.sh && \
     mkdir /dynamodb && \
     . /tmp/scripts/install-dynamo.sh /dynamodb
 
+# Install opentelemetry-cpp
+RUN chmod +x /tmp/scripts/install-opentelemetry.sh && \
+    . /tmp/scripts/install-opentelemetry.sh ${opentelemetryversion}
+
 # Install Helm3:
 RUN chmod +x /tmp/scripts/install-helm.sh && \
     . /tmp/scripts/install-helm.sh ${helmversion}
 
 # Clean up scripts:
 RUN rm -rf /tmp/scripts
-
