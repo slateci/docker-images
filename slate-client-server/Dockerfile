@@ -17,6 +17,7 @@ ARG awssdkversion=1.9.365
 ARG helmversion=3.8.1
 ARG javaversion=1.8.0
 ARG kubectlversion=1.24.7
+ARG opentelemetryversion=1.6.1
 
 # Set up custom yum repos:
 COPY ./resources/yum.repos.d/* /etc/yum.repos.d
@@ -75,15 +76,8 @@ RUN chmod +x /tmp/scripts/install-dynamo.sh && \
     . /tmp/scripts/install-dynamo.sh /dynamodb
 
 # Install opentelemetry-cpp
-RUN mkdir /tmp/opentelemetry && \
-    cd /tmp/opentelemetry && \
-    curl -fsSL https://github.com/open-telemetry/opentelemetry-cpp/archive/refs/tags/v1.6.1.tar.gz -o opentelemetry.tar.gz  && \
-    tar xvzf opentelemetry.tar.gz && \
-    mkdir build && \
-    cd build && \
-    cmake ../opentelemetry-cpp-1.6.1 -DWITH_OTLP=ON && \
-    make && \
-    make install
+RUN chmod +x /tmp/scripts/install-opentelemetry.sh && \
+    . /tmp/scripts/install-opentelemetry.sh ${opentelemetryversion}
 
 # Install Helm3:
 RUN chmod +x /tmp/scripts/install-helm.sh && \
@@ -91,4 +85,3 @@ RUN chmod +x /tmp/scripts/install-helm.sh && \
 
 # Clean up scripts:
 RUN rm -rf /tmp/scripts
-
