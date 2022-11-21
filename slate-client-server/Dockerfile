@@ -10,7 +10,7 @@ LABEL org.opencontainers.image.licenses="Unlicense"
 LABEL org.opencontainers.image.title="SLATE API Server CentOS Build Environment"
 LABEL org.opencontainers.image.url="https://github.com/slateci/slate-client-server"
 LABEL org.opencontainers.image.vendor="SLATECI"
-LABEL org.opencontainers.image.version="2.0.1"
+LABEL org.opencontainers.image.version="2.0.2"
 
 # Docker image build arguments:
 ARG awssdkversion=1.9.365
@@ -39,7 +39,24 @@ RUN dnf install -y boost-devel \
     unzip \
     which \
     yaml-cpp-devel \
-    zlib-devel
+    zlib-devel \
+    openssl \
+    openssl-devel \
+    libcurl-devel \
+    libcurl \
+    cryptopp \
+    strace \
+    procps-ng \
+    json-devel \
+    protobuf-devel \
+    protobuf-compiler \
+    gmock \
+    gmock-devel \
+    gtest \
+    gtest-devel \
+    google-benchmark \
+    google-benchmark-devel 
+
 
 RUN dnf clean all && rm -rf /var/cache/yum
 
@@ -58,6 +75,17 @@ RUN chmod +x /tmp/scripts/install-aws-cli.sh && \
 RUN chmod +x /tmp/scripts/install-dynamo.sh && \
     mkdir /dynamodb && \
     . /tmp/scripts/install-dynamo.sh /dynamodb
+
+# Install opentelemetry-cpp
+RUN mkdir /tmp/opentelemetry && \
+    cd /tmp/opentelemetry && \
+    curl -fsSL https://github.com/open-telemetry/opentelemetry-cpp/archive/refs/tags/v1.6.1.tar.gz -o opentelemetry.tar.gz  && \
+    tar xvzf opentelemetry.tar.gz && \
+    mkdir build && \
+    cd build && \
+    cmake ../opentelemetry-cpp-1.6.1 -DWITH_OTLP=ON && \
+    make && \
+    make install
 
 # Install Helm3:
 RUN chmod +x /tmp/scripts/install-helm.sh && \
