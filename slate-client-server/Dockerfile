@@ -28,37 +28,35 @@ RUN dnf install -y dnf-plugins-core && \
     https://dl.fedoraproject.org/pub/epel/epel-next-release-latest-9.noarch.rpm
 RUN dnf install -y boost-devel \
     cmake3 \
+    cryptopp \
     gcc-c++.x86_64 \
     git \
+    gmock \
+    gmock-devel \
+    google-benchmark \
+    google-benchmark-devel \
+    gtest \
+    gtest-devel \
+    json-devel \
+    libcurl \
     libcurl-devel \
     java-${javaversion} \
     kubectl-${kubectlversion} \
     make \
+    openssl \
     openssl-devel \
     perl-Digest-SHA \
+    procps-ng \
+    protobuf-devel \
+    protobuf-compiler \
+    strace \
     unzip \
     which \
     yaml-cpp-devel \
-    zlib-devel \
-    openssl \
-    openssl-devel \
-    libcurl-devel \
-    libcurl \
-    cryptopp \
-    strace \
-    procps-ng \
-    json-devel \
-    protobuf-devel \
-    protobuf-compiler \
-    gmock \
-    gmock-devel \
-    gtest \
-    gtest-devel \
-    google-benchmark \
-    google-benchmark-devel 
+    zlib-devel
 
-
-RUN dnf clean all && rm -rf /var/cache/yum
+RUN dnf clean all && \
+    rm -rf /var/cache/yum
 
 # Set up scripts:
 COPY ./scripts /tmp/scripts
