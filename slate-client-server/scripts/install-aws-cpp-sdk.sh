@@ -1,9 +1,5 @@
 #!/bin/bash
 
-# NOTE: This script is a work-in-progress. The artifacts do not install correctly,
-#       resulting in dynamic library failures. The fix would be made in
-#       https://github.com/slateci/slate-client-server/blob/develop/.github/workflows/aws-cpp-sdk.yml.
-
 # Enable strict mode:
 set -euo pipefail
 
