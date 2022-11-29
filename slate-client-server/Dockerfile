@@ -7,10 +7,10 @@ LABEL io.slateci.image.tags=""
 LABEL org.opencontainers.image.authors="adam.h.griffith@utah.edu,suchandra.thapa@gmail.com"
 LABEL org.opencontainers.image.description="This is the container that pre-installs and builds all C++ dependencies, Helm3, and the AWS CLI into the file system of the resulting Centos7 image for the slateci/slate-client-server project."
 LABEL org.opencontainers.image.licenses="Unlicense"
-LABEL org.opencontainers.image.title="SLATE API Server CentOS Build Environment"
+LABEL org.opencontainers.image.title="SLATE API Server Builtime & Runtime Environment"
 LABEL org.opencontainers.image.url="https://github.com/slateci/slate-client-server"
 LABEL org.opencontainers.image.vendor="SLATECI"
-LABEL org.opencontainers.image.version="2.0.2"
+LABEL org.opencontainers.image.version="2.0.3"
 
 # Docker image build arguments:
 ARG awssdkversion=1.9.365
@@ -77,7 +77,7 @@ RUN chmod +x /tmp/scripts/install-dynamo.sh && \
 
 # Install opentelemetry-cpp
 RUN chmod +x /tmp/scripts/install-opentelemetry.sh && \
-    . /tmp/scripts/install-opentelemetry.sh ${opentelemetryversion}
+    . /tmp/scripts/install-opentelemetry.sh ${opentelemetryversion} rocky9
 
 # Install Helm3:
 RUN chmod +x /tmp/scripts/install-helm.sh && \

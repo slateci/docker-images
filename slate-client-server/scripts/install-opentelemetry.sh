@@ -5,21 +5,26 @@ set -euo pipefail
 
 # Script variables:
 export OTEL_CLIENT_VERSION="${1}"
+export OS_DISTRIBUTION="${2}"
 
-mkdir /tmp/opentelemetry
-cd /tmp/opentelemetry
+cd /tmp
 echo "Downloading OpenTelemetry C++ client version: ${OTEL_CLIENT_VERSION}..."
-curl -fsSL https://github.com/open-telemetry/opentelemetry-cpp/archive/refs/tags/v${OTEL_CLIENT_VERSION}.tar.gz -o v${OTEL_CLIENT_VERSION}.tar.gz
+curl -LO https://slateci.io/slate-client-server/opentelemetry-cpp/${OS_DISTRIBUTION}-${OTEL_CLIENT_VERSION}.tar.gz
 
 echo "Installing OpenTelemetry C++ client..."
-tar -zxf v${OTEL_CLIENT_VERSION}.tar.gz
-ls -al
-mkdir ./build
-cd ./build
-cmake ../opentelemetry-cpp-${OTEL_CLIENT_VERSION} \
-      -DWITH_OTLP=ON
-make
-make install
+tar -zxf ${OS_DISTRIBUTION}-${OTEL_CLIENT_VERSION}.tar.gz --directory .
+chmod -R 755 /tmp/install-artifacts
+ls -al /tmp/install-artifacts
+
+echo "Copying installation artifacts to /usr/local/**..."
+ID_LIKE=$(awk -F= '$1=="ID_LIKE" { print $2 ;}' /etc/os-release)
+if [[ "${ID_LIKE}" ==  *"debian"* ]]
+then
+  cp -rf ./install-artifacts/lib/** /usr/local/lib/
+else
+  cp -rf ./install-artifacts/lib64/** /usr/local/lib64/
+fi
+cp -rf ./install-artifacts/include/** /usr/local/include/
 
 echo "Cleaning up..."
-rm -rf /tmp/opentelemetry
+rm -rf /tmp/install-artifacts
