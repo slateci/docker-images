@@ -28,3 +28,4 @@ cp -rf ./install-artifacts/include/** /usr/local/include/
 
 echo "Cleaning up..."
 rm -rf /tmp/install-artifacts
+rm /tmp/${OS_DISTRIBUTION}-${AWS_SDK_VERSION}.tar.gz

@@ -36,6 +36,7 @@ RUN dnf install -y boost-devel \
     gmock-devel \
     google-benchmark \
     google-benchmark-devel \
+    gpg \
     gtest \
     gtest-devel \
     json-devel \
@@ -56,6 +57,7 @@ RUN dnf install -y boost-devel \
     yaml-cpp-devel \
     zlib-devel
 
+# Package cache cleanup:
 RUN dnf clean all && \
     rm -rf /var/cache/yum
 
@@ -67,8 +69,9 @@ RUN chmod +x /tmp/scripts/install-aws-cpp-sdk.sh && \
     . /tmp/scripts/install-aws-cpp-sdk.sh ${awssdkversion} rocky9
 
 # Install AWS CLI (for debugging):
+COPY ./resources/aws/cli/public.key /tmp/aws-cli.key
 RUN chmod +x /tmp/scripts/install-aws-cli.sh && \
-    . /tmp/scripts/install-aws-cli.sh
+    . /tmp/scripts/install-aws-cli.sh /tmp/aws-cli.key
 
 # Install DynamoDB (for testing):
 RUN chmod +x /tmp/scripts/install-dynamo.sh && \
