@@ -6,7 +6,7 @@ set -euo pipefail
 # Script variables:
 export INSTALL_PATH="${1}"
 
-cd "/tmp"
+cd /tmp
 echo "Downloading latest DynamoDB from Amazon..."
 for FILENAME in dynamodb_local_latest.tar.gz dynamodb_local_latest.tar.gz.sha256
   do

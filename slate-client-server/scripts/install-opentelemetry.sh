@@ -28,3 +28,4 @@ cp -rf ./install-artifacts/include/** /usr/local/include/
 
 echo "Cleaning up..."
 rm -rf /tmp/install-artifacts
+rm /tmp/${OS_DISTRIBUTION}-${OTEL_CLIENT_VERSION}.tar.gz
