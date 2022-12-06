@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM docker.io/google/cloud-sdk:405.0.0
+FROM docker.io/google/cloud-sdk:411.0.0
 
 # Labels:
 LABEL io.slateci.image.name="helm-gcloud-sdk"
@@ -10,13 +10,16 @@ LABEL org.opencontainers.image.licenses="Unlicense"
 LABEL org.opencontainers.image.title="Helm & Google Cloud SDK"
 LABEL org.opencontainers.image.url="https://github.com/slateci/docker-images/helm-gcloud-sdk"
 LABEL org.opencontainers.image.vendor="SLATECI"
-LABEL org.opencontainers.image.version="1.0.2"
+LABEL org.opencontainers.image.version="1.0.3"
 
 # Docker image build arguments:
 ARG helmplugindiffversion=3.6.0
-ARG helmpluginsecretsversion=4.1.1
-ARG helmversion=3.8.1
-ARG varsversion=0.18.0
+ARG helmpluginsecretsversion=4.2.2
+ARG helmversion=3.10.2
+ARG varsversion=0.20.0
+
+# Docker container environmental variables:
+ENV HELM_SECRETS_BACKEND=vals
 
 # Change working directory:
 WORKDIR /tmp
