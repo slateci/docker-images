@@ -192,6 +192,6 @@ jobs:
 
       - name: Notify Slack of Failure
         if: failure()
-        uses: slateci/github-actions/.github/actions/slack-notify-failure@v7
+        uses: slateci/github-actions/.github/actions/slack-notify-failure@v11
         with:
           slack_bot_token: '${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}'
