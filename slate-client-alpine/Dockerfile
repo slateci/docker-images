@@ -12,10 +12,6 @@ LABEL org.opencontainers.image.url="https://github.com/slateci/slate-client-serv
 LABEL org.opencontainers.image.vendor="SLATECI"
 LABEL org.opencontainers.image.version="1.2.0"
 
-# Docker container environmental variables:
-ENV CCACHE_DIR=/tmp/ccache
-ENV SLATE_DISABLE_COMPILER_CACHE=false
-
 # Package installs/updates:
 RUN apk update && \
     apk upgrade && \
