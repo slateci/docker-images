@@ -39,19 +39,7 @@ Consolidate compiler generated dependencies of target slate
 
 ## Image Includes
 
-* cmake
-* curl-dev
-* curl-static
-* gcc
-* g++
-* libc-dev
-* libssh2-dev
-* make
-* musl-dev
-* nghttp2-dev
-* nghttp2-static
-* openssl-dev
-* zlib-dev
+See `Dockerfile`.
 
 ## Examples
 
