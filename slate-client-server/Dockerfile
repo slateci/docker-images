@@ -10,7 +10,7 @@ LABEL org.opencontainers.image.licenses="Unlicense"
 LABEL org.opencontainers.image.title="SLATE API Server Builtime & Runtime Environment"
 LABEL org.opencontainers.image.url="https://github.com/slateci/slate-client-server"
 LABEL org.opencontainers.image.vendor="SLATECI"
-LABEL org.opencontainers.image.version="2.0.4"
+LABEL org.opencontainers.image.version="2.1.0"
 
 # Docker image build arguments:
 ARG awssdkversion=1.9.365
@@ -18,6 +18,10 @@ ARG helmversion=3.8.1
 ARG javaversion=1.8.0
 ARG kubectlversion=1.24.7
 ARG opentelemetryversion=1.6.1
+
+# Docker container environmental variables:
+ENV CCACHE_DIR=/tmp/ccache
+ENV SLATE_DISABLE_COMPILER_CACHE=false
 
 # Set up custom yum repos:
 COPY ./resources/yum.repos.d/* /etc/yum.repos.d
@@ -28,6 +32,7 @@ RUN dnf install -y dnf-plugins-core && \
     dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm \
     https://dl.fedoraproject.org/pub/epel/epel-next-release-latest-9.noarch.rpm
 RUN dnf install -y boost-devel \
+    ccache \
     cmake3 \
     cryptopp \
     gcc-c++.x86_64 \
