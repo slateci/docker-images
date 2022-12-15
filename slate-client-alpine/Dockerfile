@@ -10,12 +10,17 @@ LABEL org.opencontainers.image.licenses="Unlicense"
 LABEL org.opencontainers.image.title="SLATE Remote Client Alpine Build Environment"
 LABEL org.opencontainers.image.url="https://github.com/slateci/slate-client-server"
 LABEL org.opencontainers.image.vendor="SLATECI"
-LABEL org.opencontainers.image.version="1.1.0"
+LABEL org.opencontainers.image.version="1.2.0"
+
+# Docker container environmental variables:
+ENV CCACHE_DIR=/tmp/ccache
+ENV SLATE_DISABLE_COMPILER_CACHE=false
 
 # Package installs/updates:
 RUN apk update && \
     apk upgrade && \
     apk add --no-cache \
+        ccache \
         cmake \
         curl-dev \
         curl-static \
