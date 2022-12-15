@@ -19,6 +19,10 @@ ARG javaversion=1.8.0
 ARG kubectlversion=1.24.7
 ARG opentelemetryversion=1.6.1
 
+# Docker container environmental variables:
+ENV CCACHE_DIR=/tmp/ccache
+ENV SLATE_DISABLE_COMPILER_CACHE=false
+
 # Set up custom yum repos:
 COPY ./resources/yum.repos.d/* /etc/yum.repos.d
 
