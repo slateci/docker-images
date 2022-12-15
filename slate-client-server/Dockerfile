@@ -28,6 +28,7 @@ RUN dnf install -y dnf-plugins-core && \
     dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm \
     https://dl.fedoraproject.org/pub/epel/epel-next-release-latest-9.noarch.rpm
 RUN dnf install -y boost-devel \
+    ccache \
     cmake3 \
     cryptopp \
     gcc-c++.x86_64 \
