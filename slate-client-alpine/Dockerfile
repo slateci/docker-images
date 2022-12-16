@@ -20,6 +20,7 @@ RUN apk update && \
         cmake \
         curl-dev \
         curl-static \
+        bash \
         gcc \
         g++ \
         libc-dev \
