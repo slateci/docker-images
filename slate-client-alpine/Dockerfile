@@ -31,5 +31,6 @@ RUN apk update && \
         nghttp2-static \
         openssl-dev \
         openssl-libs-static \
+        tar \
         zlib-dev \
         zlib-static
