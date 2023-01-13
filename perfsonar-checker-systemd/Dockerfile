@@ -2,7 +2,7 @@
 FROM perfsonar/testpoint:v4.4.6
 
 # Labels
-LABEL io.slateci.image.name="perfsonar-checker"
+LABEL io.slateci.image.name="perfsonar-checker-systemd"
 LABEL io.slateci.image.tags=""
 LABEL org.opencontainers.image.authors=""
 LABEL org.opencontainers.image.description=""

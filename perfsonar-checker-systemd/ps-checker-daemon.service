@@ -1,5 +1,5 @@
 [Unit]
-Description=perfSONAR-Checker
+Description=perfSONAR-Checker-placeholder
 
 [Service]
 ExecStart=/usr/local/bin/run-perfsonar-tests.sh
