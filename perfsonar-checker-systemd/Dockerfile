@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM perfsonar/testpoint:v4.4.6
+FROM perfsonar/testpoint:v4.4.6-systemd
 
 # Labels
 LABEL io.slateci.image.name="perfsonar-checker-systemd"
