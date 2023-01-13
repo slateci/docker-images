@@ -18,5 +18,4 @@ ADD run-perfsonar-tests.sh /usr/local/bin/run-perfsonar-tests.sh
 ADD ps-checker-daemon.service /etc/systemd/system/ps-checker-daemon.service
 RUN chmod 664 /etc/systemd/system/ps-checker-daemon.service
 RUN systemctl enable ps-checker-daemon.service
-
 CMD ["/usr/sbin/init"]
