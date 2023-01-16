@@ -3,6 +3,7 @@ Description=perfSONAR-Checker-placeholder
 
 [Service]
 ExecStart=/usr/local/bin/run-perfsonar-tests.sh
+StandardOutput=tty
 
 [Install]
 WantedBy=multi-user.target
