@@ -18,3 +18,4 @@ perfsonar-checker-systemd
 python-chromedriver-selenium
 slate-client-alpine
 slate-client-server
+jupyter-notebook
