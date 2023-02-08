@@ -1,13 +1,11 @@
-# The JupyterLab dependency installation commands in this Dockerfile are taken from 
-# the official upstream repos and modified as needed to work with CentOS and Condor.
+# The JupyterLab dependency scripts and installation commands in this Dockerfile are taken from 
+# the official upstream repos and modified as needed to work with Linux 9 and Condor since the 
+# upstream docker images are based on Ubuntu OS.
 # To see the original Dockerfiles and scripts, please refer to the official JupyterLab
-# repos at https://hub.docker.com/u/jupyter/
+# repos at https://hub.docker.com/u/jupyter/ and https://github.com/jupyter/docker-stacks
 
-#ARG IMAGE_BASE=quay.io/centos/centos:stream8
-ARG IMAGE_BASE=rockylinux:9
+FROM rockylinux:9
 
-FROM $IMAGE_BASE 
-# Labels
 LABEL io.slateci.image.name="jupyter-notebook"
 LABEL io.slateci.image.tags=""
 LABEL org.opencontainers.image.authors=""
@@ -19,19 +17,17 @@ LABEL org.opencontainers.image.vendor="SLATECI"
 LABEL org.opencontainers.image.version="1.0.0"
 
 LABEL maintainer="SLATE Team"
+
 ARG NB_USER="jovyan"
 ARG NB_UID="1000"
 ARG NB_GID="100"
+ARG PYTHON_VERSION=3.10
 
-# Fix DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 USER root
-
-#RUN sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* && \
-#    sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-* && \
 RUN yum -y install epel-release && \
-#RUN yum -y update 
+    yum -y update && \ 
     yum groupinstall "Development Tools" -y && \
     yum install -y \
     wget \
@@ -39,44 +35,57 @@ RUN yum -y install epel-release && \
     ca-certificates \
     sudo \ 
     gcc \
-    python3-devel && \
+    python3-devel \
+    liberation-fonts \
+    pandoc \
+    tini \
+    git \
+    nano \
+    tzdata \
+    unzip \
+    vim \
+    openssh-clients \
+    less \
+    xclip \
+    dvipng && \
     yum clean all 
 
 # Configure environment
 ENV CONDA_DIR=/opt/conda \
     SHELL=/bin/bash \
-    NB_USER=$NB_USER \
-    NB_UID=$NB_UID \
-    NB_GID=$NB_GID \
+    NB_USER="${NB_USER}" \
+    NB_UID=${NB_UID} \
+    NB_GID=${NB_GID} \
 #    LC_ALL=en_US.UTF-8 \
     LANG=en_US.UTF-8 \
     LANGUAGE=en_US.UTF-8
-ENV PATH=$CONDA_DIR/bin:$PATH \
-    HOME=/home/$NB_USER
+ENV PATH="${CONDA_DIR}/bin:${PATH}" \
+    HOME="/home/${NB_USER}"
 
 # Copy a script that we will use to correct permissions after running certain commands
 COPY fix-permissions /usr/local/bin/fix-permissions
 RUN chmod a+rx /usr/local/bin/fix-permissions
 
-# Create NB_USER wtih name jovyan user with UID=1000 and in the 'users' group
+# Enable prompt color in the skeleton .bashrc before creating the default NB_USER
+# hadolint ignore=SC2016
+##RUN sed -i 's/^#force_color_prompt=yes/force_color_prompt=yes/' /etc/skel/.bashrc && \
+   # Add call to conda init script see https://stackoverflow.com/a/58081608/4413446
+##   echo 'eval "$(command conda shell.bash hook 2> /dev/null)"' >> /etc/skel/.bashrc
+
+# Create NB_USER with name jovyan user with UID=1000 and in the 'users' group
 # and make sure these dirs are writable by the `users` group.
 RUN echo "auth requisite pam_deny.so" >> /etc/pam.d/su && \
     sed -i.bak -e 's/^%admin/#%admin/' /etc/sudoers && \
     sed -i.bak -e 's/^%sudo/#%sudo/' /etc/sudoers && \
-    useradd -m -s /bin/bash -N -u $NB_UID $NB_USER && \
-    mkdir -p $CONDA_DIR && \
-    chown $NB_USER:$NB_GID $CONDA_DIR && \
+    useradd -l -m -s /bin/bash -N -u "${NB_UID}" "${NB_USER}" && \
+    mkdir -p "${CONDA_DIR}" && \
+    chown "${NB_USER}:${NB_GID}" "${CONDA_DIR}" && \
     chmod g+w /etc/passwd && \
-    fix-permissions $HOME && \
-    fix-permissions $CONDA_DIR
-
-USER $NB_UID
-WORKDIR $HOME
-ARG PYTHON_VERSION=3.10
-
+    fix-permissions "${HOME}" && \
+    fix-permissions "${CONDA_DIR}" && \
 # Setup work directory for backward-compatibility
-RUN mkdir /home/$NB_USER/work && \
-    fix-permissions /home/$NB_USER
+    mkdir "/home/${NB_USER}/work" && \
+    fix-permissions "/home/${NB_USER}"
 
 # Download and install Micromamba, and initialize Conda prefix.
 #   <https://github.com/mamba-org/mamba#micromamba>
@@ -117,12 +126,8 @@ RUN set -x && \
     fix-permissions "${CONDA_DIR}" && \
     fix-permissions "/home/${NB_USER}"
 
-
 # Copy local files as late as possible to avoid cache busting
 COPY start.sh /usr/local/bin/
-
-
-USER ${NB_UID}
 
 # Install Jupyter Notebook, Lab, and Hub
 # Generate a notebook server config
@@ -146,6 +151,9 @@ RUN mamba install --quiet --yes \
 ENV JUPYTER_PORT=8888
 EXPOSE $JUPYTER_PORT
 
+# Configure container startup
+CMD ["start-notebook.sh"]
+
 # Copy local files as late as possible to avoid cache busting
 COPY start-notebook.sh start-singleuser.sh /usr/local/bin/
 # Currently need to have both jupyter_notebook_config and jupyter_server_config to support classic and lab
@@ -162,37 +170,81 @@ RUN sed -re "s/c.ServerApp/c.NotebookApp/g" \
 # HEALTHCHECK documentation: https://docs.docker.com/engine/reference/builder/#healthcheck
 # This healtcheck works well for `lab`, `notebook`, `nbclassic`, `server` and `retro` jupyter commands
 # https://github.com/jupyter/docker-stacks/issues/915#issuecomment-1068528799
-HEALTHCHECK  --interval=5s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget -O- --no-verbose --tries=1 --no-check-certificate \
-    http${GEN_CERT:+s}://localhost:${JUPYTER_PORT}${JUPYTERHUB_SERVICE_PREFIX:-/}api || exit 1
+#HEALTHCHECK  --interval=5s --timeout=3s --start-period=5s --retries=3 \
+#    CMD wget -O- --no-verbose --tries=1 --no-check-certificate \
+#    http${GEN_CERT:+s}://localhost:${JUPYTER_PORT}${JUPYTERHUB_SERVICE_PREFIX:-/}api || exit 1
 
+# Add R mimetype option to specify how the plot returns from R to the browser
+COPY --chown=${NB_UID}:${NB_GID} Rprofile.site /opt/conda/lib/R/etc/
+
+# Install Python 3 packages
+RUN mamba install --quiet --yes \
+    'altair' \
+    'beautifulsoup4' \
+    'bokeh' \
+    'bottleneck' \
+    'cloudpickle' \
+    'conda-forge::blas=*=openblas' \
+    'cython' \
+    'dask' \
+    'dill' \
+    'h5py' \
+    'ipympl'\
+    'ipywidgets' \
+    # Temporary fix for: https://github.com/jupyter/docker-stacks/issues/1851
+    'jupyter_server>=2.0.0' \
+    'matplotlib-base' \
+    'numba' \
+    'numexpr' \
+    'openpyxl' \
+    'pandas' \
+    'patsy' \
+    'protobuf' \
+    'pytables' \
+    'scikit-image' \
+    'scikit-learn' \
+    'scipy' \
+    'seaborn' \
+    'sqlalchemy' \
+    'statsmodels' \
+    'sympy' \
+    'widgetsnbextension'\
+    'xlrd' && \
+    mamba clean --all -f -y && \
+    fix-permissions "${CONDA_DIR}" && \
+    fix-permissions "/home/${NB_USER}"
+
+# Install facets which does not have a pip or conda package at the moment
+WORKDIR /tmp
+RUN git clone https://github.com/PAIR-code/facets.git && \
+    jupyter nbextension install facets/facets-dist/ --sys-prefix && \
+    rm -rf /tmp/facets && \
+    fix-permissions "${CONDA_DIR}" && \
+    fix-permissions "/home/${NB_USER}"
+
+# Import matplotlib the first time to build the font cache.
+ENV XDG_CACHE_HOME="/home/${NB_USER}/.cache/"
+
+RUN MPLBACKEND=Agg python -c "import matplotlib.pyplot" && \
+    fix-permissions "/home/${NB_USER}"
+
+#### htcondor installation
 USER root
-
-WORKDIR "${HOME}"
-
-#########################htcondor stuff ########################
-
-RUN yum install -y https://research.cs.wisc.edu/htcondor/repo/current/htcondor-release-current.el9.noarch.rpm && \
-#WORKDIR $HOME
-    yum install condor supervisor openssh-server -y && yum clean all && pip install htcondor && \
-    mkdir -p /var/log/supervisor && \
-    mkdir -p /var/run/sshd /var/log/supervisor && \
-    rm -rf /tmp/*
-
 ADD container-files /
 #RUN mkdir -p /var/run/sshd /var/log/supervisor
 # Make sure we have some needed dirs
 RUN mkdir -p /etc/condor/passwords.d && \
     mkdir -p /etc/condor/tokens.d && \
+    yum install -y https://research.cs.wisc.edu/htcondor/repo/current/htcondor-release-current.el9.noarch.rpm && \
+    yum install condor supervisor openssh-server -y && yum clean all && pip install htcondor && \
+    mkdir -p /var/log/supervisor && \
+    mkdir -p /var/run/sshd /var/log/supervisor && \
+    rm -rf /tmp/* && \
     chown condor: /etc/condor/passwords.d && \
     chown condor: /etc/condor/tokens.d  && \
     chmod -R 755 /etc/condor && \ 
     echo 'export PS1="\[\033[0;32m\]\u@\H:\[\033[0;32m\]\w\$\[\033[00m\] "' >> "/home/${NB_USER}/.bash_profile" && \
     chmod 755 /usr/local/sbin/supervisord_startup.sh
 
-# Switch back to jovyan to avoid accidental container runs as root
-USER ${NB_UID}
-
-
+WORKDIR $HOME
 CMD ["/usr/local/sbin/supervisord_startup.sh"]
-
