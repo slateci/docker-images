@@ -5,7 +5,6 @@
 # repos at https://hub.docker.com/u/jupyter/ and https://github.com/jupyter/docker-stacks
 
 FROM rockylinux:9
-
 LABEL io.slateci.image.name="jupyter-notebook"
 LABEL io.slateci.image.tags=""
 LABEL org.opencontainers.image.authors=""
