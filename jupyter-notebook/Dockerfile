@@ -28,6 +28,7 @@ RUN yum -y install epel-release && \
     yum -y update && \ 
     yum groupinstall "Development Tools" -y && \
     yum install -y \
+    procps \
     wget \
     bzip2 \
     ca-certificates \
