@@ -3,9 +3,6 @@
 # Enable strict mode:
 set -euo pipefail
 
-# Load env variables:
-export $(grep -v '^#' /work/.env | xargs)
-
 cat << EOF
 ===================================================
 Helm/GCloud Utility Container

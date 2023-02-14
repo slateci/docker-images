@@ -8,8 +8,8 @@ export VALS_VERSION="${1}"
 
 cd /tmp
 echo "Downloading vals version: ${VALS_VERSION}..."
-curl -LO https://github.com/variantdev/vals/releases/download/v${VALS_VERSION}/vals_${VALS_VERSION}_linux_amd64.tar.gz
-curl -LO https://github.com/variantdev/vals/releases/download/v${VALS_VERSION}/vals_${VALS_VERSION}_checksums.txt
+curl -LO https://github.com/helmfile/vals/releases/download/v${VALS_VERSION}/vals_${VALS_VERSION}_linux_amd64.tar.gz
+curl -LO https://github.com/helmfile/vals/releases/download/v${VALS_VERSION}/vals_${VALS_VERSION}_checksums.txt
 
 echo "Verifying download..."
 echo $(cat vals_${VALS_VERSION}_checksums.txt | grep .*vals_${VALS_VERSION}_linux_amd64.tar.gz) > checksum.txt

@@ -6,16 +6,16 @@ This is the container for Helm and the Google Cloud SDK.
 
 ### Prepare Environment
 
-1. Create a new `.env` from the `./helm-gcloud-sdk/.env.tmpl` in this repository and place it at the base of the desired mount point for the image (e.g. `/path/to/slate-client-server/.env`).
+1. Create a new `.env` from the `./helm-gcloud-sdk/.env.tmpl` in this repository and place it somewhere on the host (e.g. `/path/to/.env`).
 2. Replace the placeholder content with actual values.
-3. Download a JSON key for the Google `<service-account` next to the `.env` file above.
+3. Download a JSON key for the Google `<service-account` and place it at the base of the desired mount point for the image (e.g. `/path/to/mount/gcloud-key.json`).
 
 ### Example Commands
 
-Run the image.
+Run the image and mount the present working directory.
 
 ```shell
-[your@localmachine helm-slate-api]$ docker run -it -v ${PWD}:/work:Z hub.opensciencegrid.org/slate/helm-gcloud-sdk:1.0.3
+[your@localmachine helm-slate-api]$ docker run -it -v ${PWD}:/work:Z --env-file /path/to/.env hub.opensciencegrid.org/slate/helm-gcloud-sdk:latest
 ===================================================
 Helm/GCloud Utility Container
 ===================================================
@@ -46,11 +46,11 @@ slate-portal-dev-deployment-6d7874944d-8gl8c   1/1     Running   0          2d21
 
 ## Image Includes
 
-* [Google Cloud SDK](https://cloud.google.com/sdk/docs/install) `411.0.0`
-* [Helm](https://helm.sh/) `3.10.2`
-  * [databus23/helm-diff](https://github.com/databus23/helm-diff) `3.6.0`
-  * [jkroepke/helm-secrets](https://github.com/jkroepke/helm-secrets) `4.2.2`
-* [variantdev/vals](https://github.com/variantdev/vals) `0.20.0`
+* [Google Cloud SDK](https://cloud.google.com/sdk/docs/install)
+* [Helm](https://helm.sh/)
+  * [databus23/helm-diff](https://github.com/databus23/helm-diff)
+  * [jkroepke/helm-secrets](https://github.com/jkroepke/helm-secrets)
+* [helmfile/vals](https://github.com/helmfile/vals)
 
 ## Examples
 
