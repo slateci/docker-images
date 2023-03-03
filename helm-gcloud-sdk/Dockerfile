@@ -10,7 +10,7 @@ LABEL org.opencontainers.image.licenses="Unlicense"
 LABEL org.opencontainers.image.title="Helm & Google Cloud SDK"
 LABEL org.opencontainers.image.url="https://github.com/slateci/docker-images/helm-gcloud-sdk"
 LABEL org.opencontainers.image.vendor="SLATECI"
-LABEL org.opencontainers.image.version="1.0.4"
+LABEL org.opencontainers.image.version="1.0.5"
 
 # Docker image build arguments:
 ARG helmplugindiffversion=3.6.0
