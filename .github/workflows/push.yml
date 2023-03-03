@@ -155,7 +155,7 @@ jobs:
           
           IMAGE_PROPOSED_TAGS="${IMAGE_VERSION} ${IMAGE_TAGS}"
           echo "Proposed image tags: '${IMAGE_PROPOSED_TAGS}'"
-          echo "::set-output name=proposed-tags::${IMAGE_PROPOSED_TAGS}"
+          echo "proposed-tags=${IMAGE_PROPOSED_TAGS}" >> $GITHUB_OUTPUT
 
       - id: set-tags
         name: Set tags
