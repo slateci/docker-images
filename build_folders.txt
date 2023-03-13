@@ -3,7 +3,6 @@ condor-login
 condor-manager
 condor-submit
 condor-worker
-fts3
 globus-connect-v4
 gridftp
 helm-gcloud-sdk
