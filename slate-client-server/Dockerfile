@@ -10,7 +10,7 @@ LABEL org.opencontainers.image.licenses="Unlicense"
 LABEL org.opencontainers.image.title="SLATE API Server Builtime & Runtime Environment"
 LABEL org.opencontainers.image.url="https://github.com/slateci/slate-client-server"
 LABEL org.opencontainers.image.vendor="SLATECI"
-LABEL org.opencontainers.image.version="2.1.0"
+LABEL org.opencontainers.image.version="2.1.1"
 
 # Docker image build arguments:
 ARG awssdkversion=1.9.365
@@ -27,6 +27,9 @@ RUN dnf install -y dnf-plugins-core && \
     dnf config-manager --set-enabled crb -y && \
     dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm \
     https://dl.fedoraproject.org/pub/epel/epel-next-release-latest-9.noarch.rpm
+RUN dnf install -y --allowerasing \
+    libcurl \
+    libcurl-devel
 RUN dnf install -y boost-devel \
     ccache \
     cmake3 \
@@ -41,8 +44,6 @@ RUN dnf install -y boost-devel \
     gtest \
     gtest-devel \
     json-devel \
-    libcurl \
-    libcurl-devel \
     java-${javaversion} \
     kubectl-${kubectlversion} \
     make \
