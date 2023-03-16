@@ -1,5 +1,6 @@
 # syntax=docker/dockerfile:1
-FROM opensciencegrid/software-base:fresh
+#FROM opensciencegrid/software-base:fresh
+FROM htcondor/cm:lts-el8
 
 # Labels
 LABEL io.slateci.image.name="condor-manager"
@@ -10,20 +11,19 @@ LABEL org.opencontainers.image.licenses="Unlicense"
 LABEL org.opencontainers.image.title="Condor Manager"
 LABEL org.opencontainers.image.url="https://github.com/slateci/docker-images"
 LABEL org.opencontainers.image.vendor="SLATECI"
-LABEL org.opencontainers.image.version="8.9.0"
+LABEL org.opencontainers.image.version="10.0.2"
 
-RUN yum update -y && yum install -y epel-release
+RUN yum update -y && yum install -y epel-release && yum install -y https://repo.opensciencegrid.org/osg/3.6/osg-3.6-el8-release-latest.rpm
 
 # upcoming for tokens
-RUN yum install -y --enablerepo=osg-upcoming \
-  condor \
-  pwgen \
+RUN yum install -y pwgen \
   supervisor \
   openssl \
-  gratia-probe-glideinwms \ 
+# commenting this out b\c it's not in the osg repo
+# gratia-probe-glideinwms \ 
   gratia-probe-common \
   gratia-probe-condor \
-  python2-scitokens-credmon \
+  python3-scitokens-credmon \
   osg-ca-certs \
   glibc-static \
   wget \ 
@@ -32,5 +32,4 @@ RUN yum install -y --enablerepo=osg-upcoming \
 RUN yum clean all && rm -rf /tmp/yum*
 
 COPY container-files /
-
-CMD ["/usr/local/sbin/supervisord_startup.sh"]
+ENTRYPOINT  ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf" ]
