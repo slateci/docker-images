@@ -1,5 +1,5 @@
-# syntax=docker/dockerfile:1
-FROM opensciencegrid/osg-wn:3.5-el7
+#FROM opensciencegrid/osg-wn:3.5-el7
+FROM htcondor/execute:lts-el8
 
 # Labels
 LABEL io.slateci.image.name="condor-worker"
@@ -10,18 +10,18 @@ LABEL org.opencontainers.image.licenses="Unlicense"
 LABEL org.opencontainers.image.title="Condor Worker"
 LABEL org.opencontainers.image.url="https://github.com/slateci/docker-images"
 LABEL org.opencontainers.image.vendor="SLATECI"
-LABEL org.opencontainers.image.version="8.6.14"
+LABEL org.opencontainers.image.version="10.0.2"
 
 # another hack- we need to remove singularity and replace it with Igor's script
 # that wraps around the singularity binary from CVMFS and removes the --pid
 # option
-RUN yum remove -y singularity
+#No longer part of the base image hence should eventually be removed - MA 20230313
+#RUN yum remove -y singularity
 
 # libXt needed for some application
 # tcsh needed for fsurf
 # ATLAS needs unzip, gcc at least.
-RUN yum -y install --enablerepo=osg-upcoming condor \
-                   openssh-clients \
+RUN yum -y install openssh-clients \
                    openssh-server \
                    libXt \
                    tcsh \
@@ -30,7 +30,7 @@ RUN yum -y install --enablerepo=osg-upcoming condor \
                    libXpm-devel \
                    supervisor \
                    unzip && \
-    yum install http://linuxsoft.cern.ch/wlcg/centos7/x86_64/wlcg-repo-1.0.0-1.el7.noarch.rpm -y && \
+    yum install https://linuxsoft.cern.ch/wlcg/centos8/x86_64/wlcg-repo-1.0.0-1.el8.noarch.rpm -y && \
     yum install HEP_OSlibs -y && \
     yum clean all
 

@@ -1,10 +1,10 @@
 # The JupyterLab dependency scripts and installation commands in this Dockerfile are taken from 
-# the official upstream repos and modified as needed to work with Linux 9 and Condor since the 
+# the official upstream repos and modified as needed to work with Linux 8 and Condor since the 
 # upstream docker images are based on Ubuntu OS.
 # To see the original Dockerfiles and scripts, please refer to the official JupyterLab
 # repos at https://hub.docker.com/u/jupyter/ and https://github.com/jupyter/docker-stacks
 
-FROM rockylinux:9
+FROM htcondor/submit:lts-el8
 LABEL io.slateci.image.name="jupyter-notebook"
 LABEL io.slateci.image.tags=""
 LABEL org.opencontainers.image.authors=""
@@ -13,11 +13,12 @@ LABEL org.opencontainers.image.licenses="Unlicense"
 LABEL org.opencontainers.image.title="Jupyter Notebook"
 LABEL org.opencontainers.image.url="https://github.com/slateci/docker-images"
 LABEL org.opencontainers.image.vendor="SLATECI"
-LABEL org.opencontainers.image.version="1.0.1"
+#using the JupyterLab version below
+LABEL org.opencontainers.image.version="3.6.1"
 LABEL maintainer="SLATE Team"
 
 ARG NB_USER="jovyan"
-ARG NB_UID="1000"
+ARG NB_UID="1001"
 ARG NB_GID="100"
 ARG PYTHON_VERSION=3.10
 
@@ -151,7 +152,7 @@ ENV JUPYTER_PORT=8888
 EXPOSE $JUPYTER_PORT
 
 # Configure container startup
-CMD ["start-notebook.sh"]
+#CMD ["start-notebook.sh"]
 
 # Copy local files as late as possible to avoid cache busting
 COPY start-notebook.sh start-singleuser.sh /usr/local/bin/
@@ -234,8 +235,10 @@ ADD container-files /
 # Make sure we have some needed dirs
 RUN mkdir -p /etc/condor/passwords.d && \
     mkdir -p /etc/condor/tokens.d && \
-    yum install -y https://research.cs.wisc.edu/htcondor/repo/current/htcondor-release-current.el9.noarch.rpm && \
-    yum install condor supervisor openssh-server -y && yum clean all && pip install htcondor && \
+#No need to manually install condor b\c it's in the upstream image we're using here
+#    yum install -y https://research.cs.wisc.edu/htcondor/repo/current/htcondor-release-current.el9.noarch.rpm && \
+#    yum install condor supervisor openssh-server -y && yum clean all && pip install htcondor && \
+    yum install supervisor openssh-server -y && yum clean all && \
     mkdir -p /var/log/supervisor && \
     mkdir -p /var/run/sshd /var/log/supervisor && \
     rm -rf /tmp/* && \
