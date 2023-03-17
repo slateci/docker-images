@@ -238,7 +238,7 @@ RUN mkdir -p /etc/condor/passwords.d && \
 #No need to manually install condor b\c it's in the upstream image we're using here
 #    yum install -y https://research.cs.wisc.edu/htcondor/repo/current/htcondor-release-current.el9.noarch.rpm && \
 #    yum install condor supervisor openssh-server -y && yum clean all && pip install htcondor && \
-    yum install supervisor openssh-server -y && yum clean all && \
+    yum install supervisor openssh-server -y && yum clean all && pip install htcondor && \
     mkdir -p /var/log/supervisor && \
     mkdir -p /var/run/sshd /var/log/supervisor && \
     rm -rf /tmp/* && \
