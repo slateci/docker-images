@@ -13,8 +13,8 @@ LABEL org.opencontainers.image.licenses="Unlicense"
 LABEL org.opencontainers.image.title="JupyterLab"
 LABEL org.opencontainers.image.url="https://github.com/slateci/docker-images"
 LABEL org.opencontainers.image.vendor="SLATECI"
-#using the JupyterLab version below
-LABEL org.opencontainers.image.version="3.6.1"
+#This is just an image version that should be incremented everytime the image is updated
+LABEL org.opencontainers.image.version="0.2.1"
 LABEL maintainer="SLATE Team"
 
 ARG NB_USER="jovyan"
