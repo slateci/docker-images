@@ -16,4 +16,4 @@ perfsonar-checker
 perfsonar-checker-systemd
 slate-client-alpine
 slate-client-server
-jupyter-notebook
+jupyterlab
