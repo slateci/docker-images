@@ -5,12 +5,12 @@
 # repos at https://hub.docker.com/u/jupyter/ and https://github.com/jupyter/docker-stacks
 
 FROM htcondor/submit:lts-el8
-LABEL io.slateci.image.name="jupyter-notebook"
+LABEL io.slateci.image.name="jupyterlab"
 LABEL io.slateci.image.tags=""
 LABEL org.opencontainers.image.authors=""
 LABEL org.opencontainers.image.description=""
 LABEL org.opencontainers.image.licenses="Unlicense"
-LABEL org.opencontainers.image.title="Jupyter Notebook"
+LABEL org.opencontainers.image.title="JupyterLab"
 LABEL org.opencontainers.image.url="https://github.com/slateci/docker-images"
 LABEL org.opencontainers.image.vendor="SLATECI"
 #using the JupyterLab version below
