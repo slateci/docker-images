@@ -16,7 +16,7 @@ RUN yum update -y && yum install -y epel-release && \
     yum install -y https://repo.opensciencegrid.org/osg/3.6/osg-3.6-el8-release-latest.rpm
 
 # upcoming for tokens
-RUN yum install -y --enablerepo=osg-upcoming \
+RUN yum install -y \
 #removing b\c it's already in the upstream image we're using here
 #  condor \
   openssh-server \
