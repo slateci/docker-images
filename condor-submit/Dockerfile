@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM opensciencegrid/software-base:fresh
+FROM htcondor/submit:lts-el8
 
 # Labels
 LABEL io.slateci.image.name="condor-submit"
@@ -10,13 +10,15 @@ LABEL org.opencontainers.image.licenses="Unlicense"
 LABEL org.opencontainers.image.title="Condor Submit"
 LABEL org.opencontainers.image.url="https://github.com/slateci/docker-images"
 LABEL org.opencontainers.image.vendor="SLATECI"
-LABEL org.opencontainers.image.version="1.0.2"
+LABEL org.opencontainers.image.version="2.0.0"
 
-RUN yum update -y && yum install -y epel-release
+RUN yum update -y && yum install -y epel-release && \
+    yum install -y https://repo.opensciencegrid.org/osg/3.6/osg-3.6-el8-release-latest.rpm
 
 # upcoming for tokens
 RUN yum install -y --enablerepo=osg-upcoming \
-  condor \
+#removing b\c it's already in the upstream image we're using here
+#  condor \
   openssh-server \
   authconfig \
   sssd \
@@ -55,7 +57,8 @@ RUN yum clean all && rm -rf /var/cache/yum
 
 COPY container-files /
 
-RUN authconfig --update --enablesssd --enablesssdauth --enablemkhomedir
+#Temporarily commented out as it starting those services gives some errors -MA 3/24/23
+#RUN authconfig --update --enablesssd --enablesssdauth --enablemkhomedir
 
 # Make sure we have some needed dirs
 RUN mkdir -p /etc/condor/passwords.d && \
