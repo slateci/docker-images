@@ -41,7 +41,7 @@ RUN yum install -y \
   subversion \
   tcl \
   jq \
-  python2-scitokens-credmon \
+  python3-scitokens-credmon \
   stashcache-client \
   pegasus \
   @development \
