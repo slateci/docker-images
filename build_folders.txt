@@ -17,3 +17,4 @@ perfsonar-checker-systemd
 slate-client-alpine
 slate-client-server
 jupyterlab
+reana-server
