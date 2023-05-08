@@ -3,6 +3,7 @@ condor-login
 condor-manager
 condor-submit
 condor-worker
+globus-compute
 globus-connect-v4
 gridftp
 helm-gcloud-sdk
@@ -18,3 +19,4 @@ slate-client-alpine
 slate-client-server
 jupyterlab
 reana-server
+
