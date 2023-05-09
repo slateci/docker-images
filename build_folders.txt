@@ -6,7 +6,6 @@ condor-worker
 globus-compute
 globus-connect-v4
 gridftp
-helm-gcloud-sdk
 jupyter-condor
 login-node
 mariadb
