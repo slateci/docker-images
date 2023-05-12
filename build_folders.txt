@@ -18,3 +18,4 @@ slate-client-alpine
 slate-client-server
 jupyterlab
 reana-server
+perfsonar-checker-dev
