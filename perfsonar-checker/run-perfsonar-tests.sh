@@ -63,7 +63,7 @@ if is_valid_fqdn "$1" && is_valid_fqdn "$2"; then
 		print "Running latency test to: '$1' ....."  
 		run_test "pscheduler task latency --packet-count 50 --packet-interval .01 --dest $1"
 		print "Checking network path to: '$1' ....."  
-		run_test "pscheduler task --tool tracepath trace --dest $1"
+		run_test "pscheduler task --tool traceroute trace --no-hostnames --dest $1"
 
         else
 		print "The destination host '$1' is either not alive or not reachable. Skipping all tests to this host."
