@@ -59,9 +59,9 @@ if is_valid_fqdn "$1" && is_valid_fqdn "$2"; then
 	if pscheduler ping $1; then
 
 		print "Running throughput test to: '$2' ....."	
-		run_test "pscheduler task throughput -t 30 --dest $2"
+		run_test "pscheduler task throughput -t 3 --dest $2"
 		print "Running latency test to: '$1' ....."  
-		run_test "pscheduler task latency --packet-count 18000 --packet-interval .01 --dest $1"
+		run_test "pscheduler task latency --packet-count 50 --packet-interval .01 --dest $1"
 		print "Checking network path to: '$1' ....."  
 		run_test "pscheduler task --tool tracepath trace --dest $1"
 
