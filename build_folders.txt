@@ -6,6 +6,7 @@ condor-worker
 globus-compute
 globus-connect-v4
 gridftp
+jupyterlab
 jupyter-condor
 login-node
 mariadb
@@ -13,9 +14,9 @@ minio
 minislate
 open-ondemand
 perfsonar-checker
+perfsonar-checker-dev
 perfsonar-checker-systemd
+reana-server
 slate-client-alpine
 slate-client-server
-jupyterlab
-reana-server
-perfsonar-checker-dev
+v4a
