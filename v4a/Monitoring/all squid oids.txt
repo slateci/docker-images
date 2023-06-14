@@ -1,0 +1,114 @@
+
++> 1.1.1.0  cacheSysVMsize  Integer32  2.0+  Amount of cache_mem storage space used, in KB.  >>>> SMA.s0.c_bytes
+-> 1.1.2.0  cacheSysStorage  Integer32  2.0+  Amount of cache_dir storage space used, in KB.  
++> 1.1.3.0  cacheUptime  Timeticks  2.0+  The Uptime of the cache in timeticks  
+
++> 1.2.1.0  cacheAdmin  STRING  2.0+  Cache Administrator E-Mail address  
++> 1.2.2.0  cacheSoftware  STRING  2.0+  Cache Software Name. Constant squid  
++> 1.2.3.0  cacheVersionId  STRING  2.0+  Cache Software Version  
++> 1.2.4.0  cacheLoggingFacility  STRING  2.0+  Logging Facility. An informational string indicating logging info like debug level, local/syslog/remote logging etc   
+
++> 1.2.5.1.0  cacheMemMaxSize  Integer32  2.0+  The value of the cache_mem parameter in MB
+-> 1.2.5.2.0  cacheSwapMaxSize  Integer32  2.2+  The total of the cache_dir space allocated in MB  
+-> 1.2.5.3.0  cacheSwapHighWM  Integer32  2.2+  Cache Swap High Water Mark  
+-> 1.2.5.4.0  cacheSwapLowWM  Integer32  2.2+  Cache Swap Low Water Mark  
++> 1.2.6.0  cacheUniqName  Integer32  2.6+  Cache unique host name
+
+
+-> 1.3.1.1.0  cacheSysPageFaults  Counter32  2.0+  Page faults with physical i/o   
+-> 1.3.1.2.0  cacheSysNumReads  Counter32  2.0+  HTTP I/O number of reads   
++> 1.3.1.3.0  cacheMemUsage  Integer32  2.2+  Total memory accounted for KB   >>>>>>>>> SMA.s0.c_bytes 
+-> 1.3.1.4.0  cacheCpuTime  Integer32  2.2+  Amount of cpu seconds consumed   
+-> 1.3.1.5.0  cacheCpuUsage  Integer32  2.2+  The percentage use of the CPU   
+-> 1.3.1.6.0  cacheMaxResSize  Integer32  2.0+  Maximum Resident Size in KB   
++> 1.3.1.7.0  cacheNumObjCount  Gauge32  2.0+  Number of objects stored by the cache   >>>>>>>> MAIN.n_object  
+-> 1.3.1.8.0  cacheCurrentLRUExpiration  Timeticks  2.0+  Storage LRU Expiration Age   
+-> 1.3.1.9.0  cacheCurrentUnlinkRequests  Gauge32  2.0+  Requests given to unlinkd   
+-> 1.3.1.10.0  cacheCurrentUnusedFDescrCnt  Gauge32  2.0+  Available number of file descriptors   
+-> 1.3.1.11.0  cacheCurrentResFileDescrCnt  Gauge32  2.0+  Reserved number of file descriptors   
+-> 1.3.1.12.0  cacheCurrentFileDescrCnt  Gauge32  2.6+  Number of file descriptors in use   
+-> 1.3.1.13.0  cacheCurrentFileDescrMax  Gauge32  2.6+  Highest file descriptors in use   
+
+> 1.3.2.1.1.0  cacheProtoClientHttpRequests  Counter32  2.0+  Number of HTTP requests received   >>>>> MAIN.client_req 
+> 1.3.2.1.2.0  cacheHttpHits  Counter32  2.0+  Number of HTTP Hits sent to clients from cache   >>>>> MAIN.cache_hit 
+> 1.3.2.1.3.0  cacheHttpErrors  Counter32  2.0+  Number of HTTP Errors sent to clients   
+> 1.3.2.1.4.0  cacheHttpInKb  Counter32  2.0+  Number of HTTP KBs received from clients   >>>>  VBE.boot.fermilab1.beresp_bodybytes + VBE.boot.fermilab1.beresp_hdrbytes in KB summed up 
+> 1.3.2.1.5.0  cacheHttpOutKb  Counter32  2.0+  Number of HTTP KBs sent to clients >>>>>> MAIN.s_resp_bodybytes + MAIN.s_resp_hdrbytes  change to kB 
+> 1.3.2.1.6.0  cacheIcpPktsSent  Counter32  2.0+  Number of ICP messages sent   
+> 1.3.2.1.7.0  cacheIcpPktsRecv  Counter32  2.0+  Number of ICP messages received   
+> 1.3.2.1.8.0  cacheIcpKbSent  Counter32  2.0+  Number of ICP KB's transmitted   
+> 1.3.2.1.9.0  cacheIcpKbRecv  Counter32  2.0+  Number of ICP KB's received   
+> 1.3.2.1.10.0  cacheServerRequests  Integer32  2.0+  All requests from the client for the cache server  >>>> MAIN.client_req  
+> 1.3.2.1.11.0  cacheServerErrors  Integer32  2.0+  All errors for the cache server from client requests   
+> 1.3.2.1.12.0  cacheServerInKb  Counter32  2.0+  KB's of traffic received from servers   
+> 1.3.2.1.13.0  cacheServerOutKb  Counter32  2.0+  KB's of traffic sent to servers   
+> 1.3.2.1.14.0  cacheCurrentSwapSize  Gauge32  2.0+  Storage Swap size   
+> 1.3.2.1.15.0  cacheClients  Gauge32  2.2+  Number of clients accessing cache  
+
+
+> 1.3.2.2.1.1.1  cacheMedianTime.1  Integer32  2.0+  The value used to index the table 1/5/60   
+> 1.3.2.2.1.1.5  cacheMedianTime.5  Integer32  2.0+   
+> 1.3.2.2.1.1.60  cacheMedianTime.60  Integer32  2.0+   
+> 1.3.2.2.1.2.1  cacheHttpAllSvcTime.1  Integer32  2.0+  HTTP all service time, in milliseconds.   
+> 1.3.2.2.1.2.5  cacheHttpAllSvcTime.5  Integer32  2.0+   
+> 1.3.2.2.1.2.60  cacheHttpAllSvcTime.60  Integer32  2.0+   
+> 1.3.2.2.1.3.1  cacheHttpMissSvcTime.1  Integer32  2.0+  HTTP miss service time, in milliseconds.   
+> 1.3.2.2.1.3.5  cacheHttpMissSvcTime.5  Integer32  2.0+   
+> 1.3.2.2.1.3.60  cacheHttpMissSvcTime.60  Integer32  2.0+   
+> 1.3.2.2.1.4.1  cacheHttpNmSvcTime.1  Integer32  2.0+  HTTP hit not-modified service time, in milliseconds.   
+> 1.3.2.2.1.4.5  cacheHttpNmSvcTime.5  Integer32  2.0+   
+> 1.3.2.2.1.4.60  cacheHttpNmSvcTime.60  Integer32  2.0+   
+> 1.3.2.2.1.5.1  cacheHttpHitSvcTime.1  Integer32  2.0+  HTTP hit service time, in milliseconds.   
+> 1.3.2.2.1.5.5  cacheHttpHitSvcTime.5  Integer32  2.0+   
+> 1.3.2.2.1.5.60  cacheHttpHitSvcTime.60  Integer32  2.0+   
+> 1.3.2.2.1.6.1  cacheIcpQuerySvcTime.1  Integer32  2.0+  ICP query service time, in milliseconds.   
+> 1.3.2.2.1.6.5  cacheIcpQuerySvcTime.5  Integer32  2.0+   
+> 1.3.2.2.1.6.60  cacheIcpQuerySvcTime.60  Integer32  2.0+   
+> 1.3.2.2.1.7.1  cacheIcpReplySvcTime.1  Integer32  2.0+  ICP reply service time, in milliseconds.   
+> 1.3.2.2.1.7.5  cacheIcpReplySvcTime.5  Integer32  2.0+   
+> 1.3.2.2.1.7.60  cacheIcpReplySvcTime.60  Integer32  2.0+   
+> 1.3.2.2.1.8.1  cacheDnsSvcTime.1  Integer32  2.0+  DNS service time, in milliseconds.   
+> 1.3.2.2.1.8.5  cacheDnsSvcTime.5  Integer32  2.0+   
+> 1.3.2.2.1.8.60  cacheDnsSvcTime.60  Integer32  2.0+   
+> 1.3.2.2.1.9.1  cacheRequestHitRatio.1  Integer32  2.2+  Request Hit Ratios   
+> 1.3.2.2.1.9.5  cacheRequestHitRatio.5  Integer32  2.2+   
+> 1.3.2.2.1.9.60  cacheRequestHitRatio.60  Integer32  2.2+   
+> 1.3.2.2.1.10.1  cacheRequestByteRatio.1  Integer32  2.2+  Byte Hit Ratios   
+> 1.3.2.2.1.10.5  cacheRequestByteRatio.5  Integer32  2.2+   
+> 1.3.2.2.1.10.60  cacheRequestByteRatio.60  Integer32  2.2+   
+> 1.3.2.2.1.11.1  cacheHttpNhSvcTime.1  Integer32  2.6+  HTTP refresh hit service time, in milliseconds.   
+> 1.3.2.2.1.11.5  cacheHttpNhSvcTime.5  Integer32  2.6+   
+> 1.3.2.2.1.11.60  cacheHttpNhSvcTime.60  Integer32  2.6+     
+
+> 1.4.1.1.0  cacheIpEntries  Gauge32  2.0+  IP Cache Entries   
+> 1.4.1.2.0  cacheIpRequests  Counter32  2.0+  Number of IP Cache requests   
+> 1.4.1.3.0  cacheIpHits  Counter32  2.0+  Number of IP Cache hits   
+> 1.4.1.4.0  cacheIpPendingHits  Gauge32  2.0+  Number of IP Cache pending hits   
+> 1.4.1.5.0  cacheIpNegativeHits  Counter32  2.0+  Number of IP Cache pending hits   
+> 1.4.1.6.0  cacheIpMisses  Counter32  2.0+  Number of IP Cache misses   
+> 1.4.1.7.0  cacheBlockingGetHostByName  Counter32  2.0+  Number of blocking gethostbyname requests   
+> 1.4.1.8.0  cacheAttemptReleaseLckEntries  Counter32  2.0+  Number of attempts to release locked IP Cache entries     
+
+> 1.4.2.1.0  cacheFqdnEntries  Gauge32  2.0+  FQDN Cache entries   
+> 1.4.2.2.0  cacheFqdnRequests  Counter32  2.0+  Number of FQDN Cache requests   
+> 1.4.2.3.0  cacheFqdnHits  Counter32  2.0+  Number of FQDN Cache hits   
+> 1.4.2.4.0  cacheFqdnPendingHits  Gauge32  2.0+  Number of FQDN Cache pending hits   
+> 1.4.2.5.0  cacheFqdnNegativeHits  Counter32  2.0+  Number of FQDN Cache negative hits   
+> 1.4.2.6.0  cacheFqdnMisses  Counter32  2.0+  Number of FQDN Cache misses   
+> 1.4.2.7.0  cacheBlockingGetHostByAddr  Counter32  2.0+  Number of blocking gethostbyaddr requests       
+
+> 1.4.3.1.0  cacheDnsRequests  Counter32  2.0+  Number of external dnsserver requests   
+> 1.4.3.2.0  cacheDnsReplies  Counter32  2.0+  Number of external dnsserver replies   
+> 1.4.3.3.0  cacheDnsNumberServers  Counter32  2.0+  Number of external dnsserver processes   
+
+' not sent
+' 1.5.2.2.1  cacheClientAddrType  Integer32  3.1+  IP version :: 1 = IPv4, 2 = IPv6   
+' 1.5.2.2.2  cacheClientAddr  IP Address  3.1+  The client's IP address   
+' 1.5.2.2.3  cacheClientHttpRequests  Counter32  3.1+  Number of HTTP requests received from client   
+' 1.5.2.2.4  cacheClientHttpKb  Counter32  3.1+  Amount of total HTTP traffic to this client   
+' 1.5.2.2.5  cacheClientHttpHits  Counter32  3.1+  Number of hits in response to this client's HTTP requests   
+' 1.5.2.2.6  cacheClientHTTPHitKb  Counter32  3.1+  Amount of HTTP hit traffic in KB   
+' 1.5.2.2.7  cacheClientIcpRequests  Counter32  3.1+  Number of ICP requests received from client   
+' 1.5.2.2.8  cacheClientIcpKb  Counter32  3.1+  Amount of total ICP traffic to this client (child)   
+' 1.5.2.2.9  cacheClientIcpHits  Counter32  3.1+  Number of hits in response to this client's ICP requests   
+' 1.5.2.2.10  cacheClientIcpHitKb  Counter32  3.1+  Amount of ICP hit traffic in KB
