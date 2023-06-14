@@ -1,6 +1,18 @@
 FROM varnish:7.3
 # FROM varnish:fresh-alpine
 
+LABEL io.slateci.image.name="Varnish"
+LABEL io.slateci.image.tags=""
+LABEL org.opencontainers.image.authors=""
+LABEL org.opencontainers.image.description="Varnish for ATLAS"
+LABEL org.opencontainers.image.licenses="MIT License"
+LABEL org.opencontainers.image.title="Varnish"
+LABEL org.opencontainers.image.url="https://github.com/slateci/docker-images"
+LABEL org.opencontainers.image.vendor="SLATECI"
+#This is just an image version that should be incremented everytime the image is updated
+LABEL org.opencontainers.image.version="1.0.0"
+LABEL maintainer="SLATE Team"
+
 USER root
 
 # alpine version
