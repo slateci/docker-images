@@ -1,3 +1,4 @@
+atlas-xcache-heartbeats
 basic-auth
 condor-login
 condor-manager
