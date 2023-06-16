@@ -4,7 +4,7 @@ FROM rucio/rucio-clients:release-1.31.4
 # Labels
 LABEL io.slateci.image.name="atlas-xcache-heartbeats"
 LABEL io.slateci.image.tags=""
-LABEL org.opencontainers.image.authors=""
+LABEL org.opencontainers.image.authors="ivukotic@uchicago.edu"
 LABEL org.opencontainers.image.description="This is a container meant to provide a heartbeat for Atlas XCache."
 LABEL org.opencontainers.image.licenses="Apache-2.0"
 LABEL org.opencontainers.image.title="atlas-xcache-heartbeats"

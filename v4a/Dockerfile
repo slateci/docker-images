@@ -3,7 +3,7 @@ FROM varnish:7.3
 
 LABEL io.slateci.image.name="Varnish"
 LABEL io.slateci.image.tags=""
-LABEL org.opencontainers.image.authors=""
+LABEL org.opencontainers.image.authors="ivukotic@uchicago.edu"
 LABEL org.opencontainers.image.description="Varnish for ATLAS"
 LABEL org.opencontainers.image.licenses="MIT License"
 LABEL org.opencontainers.image.title="Varnish"
