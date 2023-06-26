@@ -51,7 +51,7 @@ jobs:
 
       - id: changed-files
         name: Get changed directories
-        uses: tj-actions/changed-files@v36.4.0
+        uses: tj-actions/changed-files@v37.0.3
         with:
           dir_names: true
           files: ${{ steps.build-folder-patterns.outputs.patterns }}
