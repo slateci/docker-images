@@ -174,7 +174,7 @@ jobs:
 
       - name: Authenticate with OSG Harbor
         if: ${{ github.event_name != 'pull_request' }}
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: hub.opensciencegrid.org
           username: "${{ secrets.OSG_HUB_USERNAME }}"
